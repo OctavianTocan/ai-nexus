@@ -1,0 +1,21 @@
+{
+  "name": "ai-nexus",
+  "version": "0.1.0",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "frontend:dev": "bun --cwd frontend dev",
+    "dev:backend": "uv run --project backend fastapi dev main.py",
+    "dev": "bun run dev.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "workspaces": [
+    "frontend"
+  ]
+}
