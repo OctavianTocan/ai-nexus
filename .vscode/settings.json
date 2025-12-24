@@ -1,0 +1,11 @@
+{
+    "piny.project_settings": {
+        "open-pages": [
+            "pinyfakepage.html"
+        ],
+        "tw-external-config": {},
+        "source-folders": null,
+        "preview-url": "http://localhost:3001",
+        "ai-project-brief": null
+    }
+}

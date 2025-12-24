@@ -5,7 +5,7 @@ import {
     MessageResponse,
 } from '@/components/ai-elements/message';
 import { Conversation } from '../ai-elements/conversation';
-import { PromptInput, PromptInputAttachment, PromptInputAttachments, PromptInputBody, PromptInputButton, PromptInputFooter, PromptInputHeader, PromptInputSubmit, PromptInputTextarea } from '../ai-elements/prompt-input';
+import { PromptInput, PromptInputSubmit, PromptInputTextarea } from '../ai-elements/prompt-input';
 const Chat = () => {
     return (
         <>
@@ -28,21 +28,10 @@ const Chat = () => {
                     </Conversation>
                     {/* Composer */}
                     <PromptInput onSubmit={(message) => console.log(message)} className='mt-[5%]'>
-                        {/* Header */}
-                        {/* <PromptInputHeader> */}
-                        {/* Attachments */}
-                        {/* <PromptInputAttachments> */}
-                        {/* {
-                                    (attachment) => <PromptInputAttachment data={attachment} />
-                                } */}
-                        {/* </PromptInputAttachments> */}
-                        {/* </PromptInputHeader> */}
-
-                        {/* Body */}
-                        <PromptInputBody className=''>
-                            <PromptInputTextarea placeholder='Ask something...' className='pr-12 min-h-[60px]' />
-                            <PromptInputSubmit className='absolute bottom-1 right-1'>Send</PromptInputSubmit>
-                        </PromptInputBody>
+                        {/* Text Area */}
+                        <PromptInputTextarea placeholder='Ask anything about your memories or search the web...' className='pr-16 bg-white min-h-[50px]' />
+                        {/* Send Button */}
+                        <PromptInputSubmit className='absolute bottom-1 right-1 cursor-pointer'></PromptInputSubmit>
                     </PromptInput>
                 </div>
             </div>
