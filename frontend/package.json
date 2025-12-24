@@ -25,6 +25,7 @@
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-grab": "^0.0.93",
     "shadcn": "^3.6.2",
     "shiki": "^3.20.0",
     "streamdown": "^1.6.10",
