@@ -31,7 +31,7 @@ agno_agent = Agent(
     markdown=True,
 )
 
-@app.post("/agent/test")
+@app.post("/api/chat")
 def read_root(question: str):
     agno_agent.print_response(question)
     return
