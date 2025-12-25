@@ -37,20 +37,106 @@ const Chat = () => {
 
     // Send the message to the backend.
     const sendMessageToAssistant = async (message: string) => {
-        const response = await fetch(`http://localhost:8000/api/chat?question=${encodeURIComponent(message)}`, {
-            method: 'POST'
+        const response = await fetch(`http://localhost:8000/api/chat`, {
+            method: 'POST',
+            body: JSON.stringify({ question: message }),
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'text/event-stream',
+            },
         });
-        const data = await response.json();
-        console.log(data);
-        return data.response.content;
+
+        // Check if the response is ok.
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail);
+        }
+
+        // 1. Check if body exists.
+        if (!response.body) throw new Error('Failed to get body');
+
+        // 2. Transform the stream
+        // .pipeThrough() takes the raw bytes and runs them through the decoder
+        // .getReader() gives us a way to read the resulting text
+        const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+
+        let buffer = '';
+        while (true) {
+            // 3. Read the next chunk.
+            const { done, value } = await reader.read();
+
+            // 4. If the stream is done, break the loop.
+            if (done) break;
+
+            // 5. Add the new text to our buffer.
+            buffer += value;
+
+            // 6. Split buffer by newlines to find individual messages. (SSE events are delimited by newlines).
+            const messages = buffer.split('\n\n');
+
+            // 7. Save the last piece. The last item in the array is usually incomplete, so we save it to the buffer. We pop it off and add it back to the buffer.
+            buffer = messages.pop() || '';
+
+            // 8. Process each message.
+            for (const message of messages) {
+                // 9. Check for the SSE delimiter.
+                if (message.startsWith('data: ')) {
+                    // 10. Remove the 'data: ' prefix.
+                    const data = message.slice(6);
+
+                    // 11. Handle the stream end event.
+                    if (data === '[DONE]') {
+                        // 12. Stop the loading state.
+                        setIsLoading(false);
+                        // 13. Return the result string.
+                        return buffer;
+                    }
+
+                    try {
+                        // 12. Parse the message as JSON.
+                        const json = JSON.parse(data);
+
+                        if (json.type === 'delta') {
+                            // 13. Accumulate the delta content.
+                            buffer += json.content;
+                        }
+                    } catch (error) {
+                        // Ignore errors for incomplete messages.
+                        continue;
+                    }
+                }
+            }
+        }
+
+        // // Get the reader from the response body.
+        // const reader = response.body?.getReader();
+        // if (!reader) throw new Error('Failed to get reader');
+        // // Create a decoder to decode the response body.
+        // const decoder = new TextDecoder();
+        // // Initialize the result string.
+        // let result = '';
+        // // Read the response body.
+        // while (true) {
+        //     // Read the next chunk.
+        //     const { done, value } = await reader.read();
+        //     if (done || !value) break;
+        //     // Decode the chunk and add it to the result string.
+        //     result += decoder.decode(value, { stream: true });
+        //     console.log(JSON.parse(result).data);
+
+        //     // Stop the loading state.
+        //     setIsLoading(false);
+        // }
+        // Return the result string.
+        return result;
     }
     return (
         <>
             <div className="fixed inset-0 overflow-hidden">
-                <div className='w-[60%] mx-auto h-screen flex flex-col overflow-hidden'>
+                <div className='w-[30%] mx-auto h-screen flex flex-col overflow-hidden'>
                     <div className="flex-1 overflow-y-auto scrollbar-hide">
                         {chatHistory.length === 0 ? (
-                            <div className="text-center font-semibold mt-8">
+                            <div className="text-center absolute top-1/2 -translate-y-40 left-1/2 -translate-x-1/2 font-semibold mt-8">
                                 <p className="text-3xl mt-4">What can we build together?</p>
                             </div>
                         ) : (

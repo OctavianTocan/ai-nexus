@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+import json
 
 from agno.agent import Agent
 from agno.db.sqlite import SqliteDb
@@ -8,6 +10,38 @@ from agno.os import AgentOS
 from agno.tools.mcp import MCPTools
 
 from dotenv import load_dotenv
+
+from pydantic import BaseModel
+
+
+# API Response Models.
+class ChatResponse(BaseModel):
+    """
+    This model is used to represent the response from the Agno agent.
+    Args:
+        response: The response from the Agno agent.
+    Returns:
+        A JSON object with a "response" key.
+        The "response" key contains the response from the Agno agent.
+    """
+
+    # The response from the Agno agent.
+    response: str
+
+
+# API Request Models.
+class ChatRequest(BaseModel):
+    """
+    This model is used to represent the request to the chat API.
+    Args:
+        question: The question to ask the Agno agent.
+    Returns:
+        A JSON object with a "question" key.
+    """
+
+    # The question to ask the Agno agent.
+    question: str
+
 
 # Load the environment variables.
 load_dotenv()
@@ -38,6 +72,36 @@ agno_agent = Agent(
 
 
 @app.post("/api/chat")
-def chat(question: str):
-    response = agno_agent.run(question, stream=False)
-    return {"response": response}
+def chat(request: ChatRequest) -> StreamingResponse:
+    """
+    This endpoint is used to chat with the Agno agent.
+    Args:
+        request: The request to the chat API.
+    Returns:
+        A StreamingResponse object.
+        The StreamingResponse object contains the response from the Agno agent.
+        The response is returned as a stream of events.
+        The events are returned as a JSON object with a "type" key and a "content" key.
+        The "type" key is either "delta" or "done".
+    """
+
+    def event_stream():
+        # Iterate Agno's streaming events
+        for ev in agno_agent.run(request.question, stream=True):
+            chunk = getattr(ev, "content", None)
+            if chunk:
+                # Send a "delta" payload to the client
+                payload = {"type": "delta", "content": chunk}
+                yield f"data: {json.dumps(payload)}\n\n"
+
+        # Signal completion
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
