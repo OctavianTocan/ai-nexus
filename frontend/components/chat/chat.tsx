@@ -6,9 +6,23 @@ import {
 } from '@/components/ai-elements/message';
 import { Conversation, ConversationContent } from '../ai-elements/conversation';
 import { PromptInput, PromptInputSubmit, PromptInputTextarea, PromptInputMessage } from '../ai-elements/prompt-input';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader } from '../ai-elements/loader';
 import { ChatClient } from '@/lib/chat-client'
+import { useStickToBottomContext } from 'use-stick-to-bottom';
+
+// Scroll to bottom of the chat when the chat history changes.
+const ChatScrollAnchor = ({ track }: { track: number }) => {
+    // Get the scroll to bottom context. (This works because the Conversation component is a child of the ConversationContent component, and that has the useStickToBottomContext hook.)
+    const { scrollToBottom } = useStickToBottomContext();
+
+    // Scroll to bottom of the chat when the chat history changes.
+    useEffect(() => {
+        scrollToBottom();
+    }, [track, scrollToBottom]);
+    return null;
+}
+
 const Chat = () => {
     // Chat History Array.
     const [chatHistory, setChatHistory] = useState<
@@ -55,14 +69,14 @@ const Chat = () => {
         <>
             <div className="fixed inset-0 overflow-hidden">
                 <div className='w-[30%] mx-auto h-screen flex flex-col overflow-hidden'>
-                    {chatHistory.length === 0 ? (
-                        <div className="text-center absolute top-1/2 -translate-y-40 left-1/2 -translate-x-1/2 font-semibold mt-8">
-                            <p className="text-3xl mt-4">What can we build together?</p>
-                        </div>
-                    ) : (
-                        <>
-                            <Conversation className='flex-1 overflow-y-auto' resize="auto">
-                                <ConversationContent>
+                    <Conversation className='flex-1 overflow-y-auto' resize="smooth">
+                        <ConversationContent>
+                            {chatHistory.length === 0 ? (
+                                <div className="text-center my-auto font-semibold mt-8">
+                                    <p className="text-3xl mt-4">What can we build together?</p>
+                                </div>
+                            ) : (
+                                <>
                                     {/* Chat History */}
                                     {chatHistory.map((message, index) => {
                                         return (
@@ -84,10 +98,11 @@ const Chat = () => {
                                             </MessageContent>
                                         </Message>
                                     )}
-                                </ConversationContent>
-                            </Conversation>
-                        </>
-                    )}
+                                </>
+                            )}
+                        </ConversationContent>
+                        <ChatScrollAnchor track={chatHistory.length} />
+                    </Conversation>
                     {/* Composer */}
                     <PromptInput onSubmit={(message) => handleSendMessage(message)} className='mb-4 px-2'>
                         {/* Text Area */}
