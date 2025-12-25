@@ -24,6 +24,8 @@ const ChatScrollAnchor = ({ track }: { track: number }) => {
 }
 
 const Chat = () => {
+    // Message State.
+    const [message, setMessage] = useState<PromptInputMessage>({ text: '', files: [] });
     // Chat History Array.
     const [chatHistory, setChatHistory] = useState<
         Array<{
@@ -106,10 +108,10 @@ const Chat = () => {
                     {/* Composer */}
                     <PromptInput onSubmit={(message) => handleSendMessage(message)} className='mb-4 px-2'>
                         {/* Text Area */}
-                        <PromptInputTextarea placeholder='Ask anything about your memories or search the web...' className='pr-16 bg-white min-h-[50px]' />
+                        <PromptInputTextarea placeholder='Ask anything about your memories or search the web...' className='pr-16 bg-white min-h-[50px]' onChange={(e) => setMessage({ ...message, text: e.currentTarget.value })} value={message.text} />
                         {/* Send Button */}
-                        <PromptInputSubmit className='absolute bottom-1 right-1 cursor-pointer'
-                            status={isLoading ? 'streaming' : 'ready'}></PromptInputSubmit>
+                        <PromptInputSubmit disabled={message.text.length === 0} className='absolute bottom-1 right-1 cursor-pointer'
+                            status={isLoading ? 'streaming' : 'ready'} />
                     </PromptInput>
                 </div>
             </div>
