@@ -42,11 +42,11 @@ const Chat = () => {
                 // Create a new chat history array.
                 const newChatHistory = [...prev];
                 // Update the assistant message in the chat history.
-                newChatHistory[newChatHistory.length - 1].content = assistantMessage;
-                // Return the new chat history array.
+                const newMessageIndex = newChatHistory.length - 1;
+                newChatHistory[newMessageIndex] = { ...newChatHistory[newMessageIndex], content: assistantMessage };
                 return newChatHistory;
             });
-            // Stop the loading state.
+            // Stop the loading state. (We're already receiving the response, so we can stop the loading state).
             setIsLoading(false);
         }
     }
@@ -61,8 +61,9 @@ const Chat = () => {
                         </div>
                     ) : (
                         <>
-                            <Conversation className='flex-1 overflow-y-auto' resize="auto" children={
+                            <Conversation className='flex-1 overflow-y-auto' resize="auto">
                                 <ConversationContent>
+                                    {/* Chat History */}
                                     {chatHistory.map((message, index) => {
                                         return (
                                             <Message from={message.type} key={index}>
@@ -72,6 +73,7 @@ const Chat = () => {
                                             </Message>
                                         )
                                     })}
+                                    {/* Loading Spinner */}
                                     {isLoading && (
                                         <Message from="assistant">
                                             <MessageContent>
@@ -83,7 +85,6 @@ const Chat = () => {
                                         </Message>
                                     )}
                                 </ConversationContent>
-                            }>
                             </Conversation>
                         </>
                     )}
