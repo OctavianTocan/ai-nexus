@@ -10,5 +10,6 @@ dependencies = [
     "google-genai>=1.56.0",
     "mcp>=1.25.0",
     "pydantic>=2.12.5",
+    "python-dotenv>=1.2.1",
     "sqlalchemy>=2.0.45",
 ]

@@ -7,12 +7,17 @@ from agno.models.google import Gemini
 from agno.os import AgentOS
 from agno.tools.mcp import MCPTools
 
+from dotenv import load_dotenv
+
+# Load the environment variables.
+load_dotenv()
+
 # Create the FastAPI app.
 app = FastAPI()
 # Middleware. (We need this to allow the frontend to make requests to the backend).
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3001"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,7 +36,8 @@ agno_agent = Agent(
     markdown=True,
 )
 
+
 @app.post("/api/chat")
-def read_root(question: str):
-    agno_agent.print_response(question)
-    return
+def chat(question: str):
+    response = agno_agent.run(question, stream=False)
+    return {"response": response}

@@ -75,6 +75,7 @@ dependencies = [
     { name = "google-genai" },
     { name = "mcp" },
     { name = "pydantic" },
+    { name = "python-dotenv" },
     { name = "sqlalchemy" },
 ]
 
@@ -85,6 +86,7 @@ requires-dist = [
     { name = "google-genai", specifier = ">=1.56.0" },
     { name = "mcp", specifier = ">=1.25.0" },
     { name = "pydantic", specifier = ">=2.12.5" },
+    { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "sqlalchemy", specifier = ">=2.0.45" },
 ]
 
