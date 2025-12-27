@@ -49,3 +49,6 @@ next-env.d.ts
 
 # Python
 __pycache__
+
+# Custom AI-Dev-Tools
+/packages/ai-dev-tools/

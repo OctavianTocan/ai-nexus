@@ -113,8 +113,3 @@ graph TD
     -   Pass the auth token in the headers of all API requests.
 
 ## Checklist
-
-- [ ] Backend: `fastapi-users` dependencies installed
-- [ ] Backend: User model and DB setup
-- [ ] Backend: Auth endpoints operational
-- [ ] Backend: Agno Agent configured with `SqliteDb` and `user_id` context

@@ -6,10 +6,11 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "agno>=2.3.21",
+    "aiosqlite>=0.22.1",
+    "fastapi-users[sqlalchemy]>=15.0.3",
     "fastapi[standard]>=0.127.0",
     "google-genai>=1.56.0",
     "mcp>=1.25.0",
     "pydantic>=2.12.5",
     "python-dotenv>=1.2.1",
-    "sqlalchemy>=2.0.45",
 ]
