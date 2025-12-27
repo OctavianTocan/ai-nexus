@@ -100,37 +100,6 @@
 - **[Entity 1]**: [What it represents, key attributes without implementation]
 - **[Entity 2]**: [What it represents, relationships to other entities]
 
-## Quality Requirements *(mandatory - constitution compliance)*
-
-<!--
-  ACTION REQUIRED: These requirements are NON-NEGOTIABLE based on the AI Nexus Constitution.
-  Fill out the specifics for this feature.
--->
-
-### Test-Driven Development (TDD)
-
-- **QR-001**: Tests MUST be written before implementation (Red-Green-Refactor cycle)
-- **QR-002**: All user stories must have corresponding tests (unit, integration, or contract tests)
-- **QR-003**: Tests must fail initially, then pass after implementation
-- **QR-004**: Test coverage must include all acceptance scenarios from user stories
-
-### Component Documentation (Storybook)
-
-- **QR-005**: All React components MUST have Storybook stories demonstrating all variants
-- **QR-006**: Storybook stories must cover default state, prop variations, edge cases, and interactions
-- **QR-007**: Component APIs must be documented through story metadata and controls
-
-### Type Safety & Validation
-
-- **QR-008**: Frontend code must pass TypeScript strict mode checks (no `any` types)
-- **QR-009**: Backend code must include type hints on all functions and methods
-- **QR-010**: API endpoints must use Pydantic models for request/response validation
-
-### Human-Written Code
-
-- **QR-011**: All code must be human-written with clear understanding
-- **QR-012**: Code reviews must verify human authorship and comprehension
-
 ## Success Criteria *(mandatory)*
 
 <!--

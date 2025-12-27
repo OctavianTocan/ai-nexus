@@ -31,38 +31,7 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-### Test-Driven Development (TDD) Gate
-
-- [ ] Tests defined for all user stories BEFORE implementation begins
-- [ ] Test framework identified (bun test for frontend, pytest for backend)
-- [ ] Integration test strategy for API contracts
-- [ ] Unit test coverage plan for components and services
-
-### Human-Written Code Gate
-
-- [ ] No AI-generated code dependencies in the implementation plan
-- [ ] Development approach emphasizes human understanding and authorship
-- [ ] Code review process includes human authorship verification
-
-### Component Documentation (Storybook) Gate
-
-- [ ] Storybook configured for frontend components
-- [ ] Every component in the plan has Storybook stories specified
-- [ ] Component API documentation planned through story metadata
-
-### Modern Technology Stack Gate
-
-- [ ] Bun runtime usage confirmed for all JavaScript/TypeScript execution
-- [ ] Next.js 16+ and React 19+ for frontend features
-- [ ] Python 3.13+ with uv for backend dependencies
-- [ ] Type safety enforcement (TypeScript strict mode, Python type hints, Pydantic)
-
-### Type Safety & Validation Gate
-
-- [ ] TypeScript strict mode enabled in frontend
-- [ ] Python type hints on all backend functions
-- [ ] Pydantic models for all API request/response schemas
-- [ ] No `any` types or type ignores in the implementation plan
+[Gates determined based on constitution file]
 
 ## Project Structure
 
