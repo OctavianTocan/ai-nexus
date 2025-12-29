@@ -3,7 +3,7 @@ from fastapi_users.authentication import (
     BearerTransport,
     JWTStrategy,
 )
-from fastapi_users import UUIDIdMixin, BaseUserManager, FastAPIUsers
+from fastapi_users import UUIDIDMixin, BaseUserManager, FastAPIUsers
 import os
 import uuid
 from typing import Optional
@@ -12,6 +12,10 @@ from fastapi import Request
 from fastapi_users.db import SQLAlchemyUserDatabase
 from fastapi import Depends
 
+import dotenv
+
+
+dotenv.load_dotenv()
 # Get the secret from the environment variable. This is used to sign the JWT tokens.
 SECRET = os.environ.get("AUTH_SECRET")
 if not SECRET:
@@ -19,11 +23,11 @@ if not SECRET:
 
 
 # UserManager: Manages user creation, authentication, and password reset
-class UserManager(UUIDIdMixin, BaseUserManager[User, uuid.UUID]):
+class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     """
     This class manages user creation, authentication, and password reset.
     Inherits from:
-        UUIDIdMixin: Mixin for UUID-based user IDs.
+        UUIDIDMixin: Mixin for UUID-based user IDs.
         BaseUserManager[User, uuid.UUID]: Base class for user managers that handles password hashing and verification.
     """
 

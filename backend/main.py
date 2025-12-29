@@ -3,12 +3,12 @@ from collections.abc import AsyncGenerator
 
 from app.db import create_db_and_tables, User
 
-from backend.app.users import fastapi_users, auth_backend, current_active_user
+from app.users import fastapi_users, auth_backend, current_active_user
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 import json
-
+from app.schemas import UserRead, UserCreate, UserUpdate
 from agno.agent import Agent
 from agno.db.sqlite import SqliteDb
 from agno.models.google import Gemini
@@ -83,9 +83,17 @@ app.include_router(
     fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
 )
 # This includes the registration routes.
-app.include_router(fastapi_users.get_register_router(), prefix="/auth", tags=["auth"])
+app.include_router(
+    fastapi_users.get_register_router(UserRead, UserCreate),
+    prefix="/auth",
+    tags=["auth"],
+)
 # This includes the user routes.
-app.include_router(fastapi_users.get_users_router(), prefix="/users", tags=["users"])
+app.include_router(
+    fastapi_users.get_users_router(UserRead, UserUpdate),
+    prefix="/users",
+    tags=["users"],
+)
 
 # Create the Agno database.
 agno_db = SqliteDb(db_file="agno.db")
