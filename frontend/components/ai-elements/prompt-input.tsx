@@ -427,6 +427,14 @@ export const PromptInputActionAddAttachments = ({
   );
 };
 
+/*
+  This is the type of the message that is sent to the server.
+  Args:
+    text: The text of the message.
+    files: The files of the message.
+  Returns:
+    A JSON object with a "text" key and a "files" key.
+*/
 export type PromptInputMessage = {
   text: string;
   files: FileUIPart[];

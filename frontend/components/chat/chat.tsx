@@ -38,12 +38,16 @@ const Chat = () => {
 
     // Add the user message to the chat history.
     const handleSendMessage = async (message: PromptInputMessage) => {
+        const newMessage = message;
+        // Reset the message state. (So we can see that there's no more text in the text area, without this the text area will still show the previous message).
+        setMessage({ text: '', files: [] });
+
         // Start the loading state.
         setIsLoading(true);
 
         // Add the user message to the chat history.
         setChatHistory((prev) => [...prev,
-        { type: 'user', content: message.text },
+        { type: 'user', content: newMessage.text },
         { type: "assistant", content: '' },
         ]);
 
@@ -51,7 +55,7 @@ const Chat = () => {
         let assistantMessage = '';
 
         // Stream the response.
-        for await (const chunk of ChatClient.streamMessage(message.text)) {
+        for await (const chunk of ChatClient.streamMessage(newMessage.text)) {
             assistantMessage += chunk || '';
             // Update the assistant message in the chat history.
             setChatHistory((prev) => {

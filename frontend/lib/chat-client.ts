@@ -9,19 +9,15 @@
  * @throws {Error} If the API response is not OK or the response body is missing.
  */
 export class ChatClient {
-    /**
-     * The base URL of the chat API.
-     */
-    static baseUrl: string = 'http://localhost:8000';
-
     static async* streamMessage(message: string): AsyncGenerator<string> {
-        const response = await fetch(`${ChatClient.baseUrl}/api/chat`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat`, {
             method: 'POST',
             body: JSON.stringify({ question: message }),
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'text/event-stream',
             },
+            credentials: 'include',
         });
 
         // Check if the response is ok.

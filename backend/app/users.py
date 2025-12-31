@@ -1,6 +1,6 @@
 from fastapi_users.authentication import (
     AuthenticationBackend,
-    BearerTransport,
+    CookieTransport,
     JWTStrategy,
 )
 from fastapi_users import UUIDIDMixin, BaseUserManager, FastAPIUsers
@@ -72,8 +72,15 @@ async def get_user_manager(
     yield UserManager(user_db)
 
 
+should_secure_cookie = os.environ.get("ENV") == "prod"
 # Transport: How the token is sent (Bearer header)
-bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
+cookie_transport = CookieTransport(
+    cookie_name="session_token",
+    cookie_httponly=True,
+    cookie_secure=should_secure_cookie,
+    cookie_samesite="lax",
+    cookie_max_age=3600,
+)
 
 
 # Strategy: How the token is created (JWT)
@@ -84,7 +91,7 @@ def get_jwt_strategy() -> JWTStrategy:
 # Combine transport + strategy into an auth backend
 auth_backend = AuthenticationBackend(
     name="jwt",
-    transport=bearer_transport,
+    transport=cookie_transport,
     get_strategy=get_jwt_strategy,
 )
 

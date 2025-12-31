@@ -54,9 +54,11 @@ export function LoginForm({
                             </Field>
                             <Field>
                                 <Button type="submit">Login</Button>
+                                {/* TODO: Link to login with Google. */}
                                 <Button variant="outline" type="button">
                                     Login with Google
                                 </Button>
+                                {/* TODO: Link to signup page. */}
                                 <FieldDescription className="text-center">
                                     Don&apos;t have an account? <a href="#">Sign up</a>
                                 </FieldDescription>

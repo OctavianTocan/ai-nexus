@@ -38,22 +38,6 @@ export default function RootLayout({
       </head>
       <body>
         {children}
-
-        {/* WUUNU SNIPPET - DON'T CHANGE THIS (START) */}
-        {process.env.NODE_ENV !== "production" && (
-          <>
-            <Script id="wuunu-ws" strategy="afterInteractive">
-              {`window.__WUUNU_WS__ = "http://127.0.0.1:34703/?token=d99932aca4264608a8a1ddc1a8a95c5455dc8de7324f3b7b";`}
-            </Script>
-            <Script
-              id="wuunu-widget"
-              src="https://cdn.jsdelivr.net/npm/@wuunu/widget@0.1.20"
-              strategy="afterInteractive"
-              crossOrigin="anonymous"
-            />
-          </>
-        )}
-        {/* WUUNU SNIPPET - DON'T CHANGE THIS (END) */}
       </body>
     </html>
   );
