@@ -6,11 +6,10 @@ from fastapi_users.authentication import (
 from fastapi_users import UUIDIDMixin, BaseUserManager, FastAPIUsers
 import os
 import uuid
-from typing import Optional
+from typing import AsyncGenerator, Optional, cast
 from app.db import User, get_user_db
-from fastapi import Request
+from fastapi import Depends, Request, Response
 from fastapi_users.db import SQLAlchemyUserDatabase
-from fastapi import Depends
 
 import dotenv
 
@@ -48,20 +47,24 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
         print(f"User {user.id} has registered.")
 
     async def on_after_login(
-        self, user: User, request: Optional[Request] = None
+        self,
+        user: User,
+        request: Optional[Request] = None,
+        response: Optional[Response] = None,
     ) -> None:
         """
         This function is called after a user logs in.
         Args:
             user: The user who logged in.
             request: The request object.
+            response: The response object.
         """
         print(f"User {user.id} has logged in.")
 
 
 async def get_user_manager(
     user_db: SQLAlchemyUserDatabase[User, uuid.UUID] = Depends(get_user_db),
-) -> UserManager:
+) -> AsyncGenerator[UserManager, None]:
     """
     This function is a dependency that returns the user manager.
     Args:
@@ -85,7 +88,7 @@ cookie_transport = CookieTransport(
 
 # Strategy: How the token is created (JWT)
 def get_jwt_strategy() -> JWTStrategy:
-    return JWTStrategy(secret=SECRET, lifetime_seconds=3600)
+    return JWTStrategy(secret=cast(str, SECRET), lifetime_seconds=3600)
 
 
 # Combine transport + strategy into an auth backend

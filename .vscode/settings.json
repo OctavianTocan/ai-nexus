@@ -1,31 +1,31 @@
 {
-    "piny.project_settings": {
-        "open-pages": [
-            "pinyfakepage.html"
-        ],
-        "tw-external-config": {},
-        "source-folders": null,
-        "preview-url": "http://localhost:3001",
-        "ai-project-brief": null
-    },
-    "workbench.colorCustomizations": {
-        "activityBar.activeBackground": "#bc7659",
-        "activityBar.background": "#bc7659",
-        "activityBar.foreground": "#15202b",
-        "activityBar.inactiveForeground": "#15202b99",
-        "activityBarBadge.background": "#8dd1a1",
-        "activityBarBadge.foreground": "#15202b",
-        "commandCenter.border": "#e7e7e799",
-        "sash.hoverBorder": "#bc7659",
-        "statusBar.background": "#a15d41",
-        "statusBar.foreground": "#e7e7e7",
-        "statusBarItem.hoverBackground": "#bc7659",
-        "statusBarItem.remoteBackground": "#a15d41",
-        "statusBarItem.remoteForeground": "#e7e7e7",
-        "titleBar.activeBackground": "#a15d41",
-        "titleBar.activeForeground": "#e7e7e7",
-        "titleBar.inactiveBackground": "#a15d4199",
-        "titleBar.inactiveForeground": "#e7e7e799"
-    },
-    "peacock.color": "#a15d41"
+  "piny.project_settings": {
+    "open-pages": ["pinyfakepage.html"],
+    "tw-external-config": {},
+    "source-folders": null,
+    "preview-url": "http://localhost:3001",
+    "ai-project-brief": null
+  },
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#bc7659",
+    "activityBar.background": "#bc7659",
+    "activityBar.foreground": "#15202b",
+    "activityBar.inactiveForeground": "#15202b99",
+    "activityBarBadge.background": "#8dd1a1",
+    "activityBarBadge.foreground": "#15202b",
+    "commandCenter.border": "#e7e7e799",
+    "sash.hoverBorder": "#bc7659",
+    "statusBar.background": "#a15d41",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.hoverBackground": "#bc7659",
+    "statusBarItem.remoteBackground": "#a15d41",
+    "statusBarItem.remoteForeground": "#e7e7e7",
+    "titleBar.activeBackground": "#a15d41",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveBackground": "#a15d4199",
+    "titleBar.inactiveForeground": "#e7e7e799"
+  },
+  "peacock.color": "#a15d41",
+  "python-envs.defaultEnvManager": "ms-python.python:system",
+  "python-envs.pythonProjects": []
 }

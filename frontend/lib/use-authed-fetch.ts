@@ -21,7 +21,7 @@ export function useAuthedFetch() {
 
         if (response.status === 401) {
             router.replace("/login");
-            console.error("User is not authenticated, redirecting to login page");
+            console.debug("User is not authenticated, redirecting to login page");
         }
 
         return response.json();
