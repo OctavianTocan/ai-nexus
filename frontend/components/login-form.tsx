@@ -40,7 +40,7 @@ export function LoginForm({
           username: email,
           password: password,
         }),
-        credentials: "include"
+        credentials: "include",
       }
     );
 
@@ -48,12 +48,10 @@ export function LoginForm({
       throw new Error("Login failed");
     }
 
-    console.log(response.body);
+    console.log("response", response);
 
     // TODO: Need to call the backend, and ask it if the user's email/password is correct.
     // If so, then we take them back to the homepage, but already logged in, and thus our browser also has a HTTPOnly Cookie (?) so we can make requests to the backend.
-
-    console.log(email);
   };
 
   return (

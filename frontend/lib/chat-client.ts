@@ -71,7 +71,8 @@ export class ChatClient {
                         // 13. Yield the delta content.
                         yield json.type === 'delta' ? json.content : null;
                     } catch (error) {
-                        // Ignore errors for incomplete messages.
+                        // Ignore errors for incomplete messages.                  
+                        console.log("chat-client", error);
                     }
                 }
             }
