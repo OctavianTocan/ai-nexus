@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export function LoginForm({
   className,
@@ -25,10 +26,14 @@ export function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // Get the router.
+  const router = useRouter();
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     // Stops the page from refreshing.
     event.preventDefault();
 
+    // TODO: This inline fetch needs to be moved to a custom hook.
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/auth/jwt/login`,
       {
@@ -48,10 +53,8 @@ export function LoginForm({
       throw new Error("Login failed");
     }
 
-    console.log("response", response);
-
-    // TODO: Need to call the backend, and ask it if the user's email/password is correct.
-    // If so, then we take them back to the homepage, but already logged in, and thus our browser also has a HTTPOnly Cookie (?) so we can make requests to the backend.
+    // Redirect to the homepage.
+    router.push("/");
   };
 
   return (
@@ -72,6 +75,7 @@ export function LoginForm({
                   id="email"
                   type="email"
                   placeholder="m@example.com"
+                  autoComplete="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -90,6 +94,7 @@ export function LoginForm({
                 <Input
                   id="password"
                   type="password"
+                  autoComplete="current-password"
                   required
                   value={password}
                   onChange={(e) => {

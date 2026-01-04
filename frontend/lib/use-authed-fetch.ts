@@ -3,29 +3,33 @@
 import { useRouter } from "next/navigation";
 
 /*
-This function returns a function that fetches the current user from the API.
-If the user is not authenticated, it redirects to the login page.
+* This function returns a function that fetches a URL from the API.
+* If the user is not authenticated, it throws an error. (The caller can handle this by redirecting to the login page.)
 */
 export function useAuthedFetch() {
   const router = useRouter();
 
-  // Return a function that fetches the current user from the API.
-  return async function authedFetch() {
-    // Fetch GET /users/me from the API.
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/users/me`,
-      {
-        credentials: "include",
-      }
-    );
+  // Return a function that fetches a URL from the API.
+  return async function authedFetch(url: string, options?: RequestInit) {
+    // Fetch the URL from the API.
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${url}`, {
+      ...options,
+      // Include the session token in the request. (HTTPOnly Cookie)
+      credentials: "include",
+    });
 
-    console.log(response);
-
+    // Handle expired cookies. (User is not authenticated.)
     if (response.status === 401) {
       router.replace("/login");
-      console.debug("User is not authenticated, redirecting to login page");
+      throw new Error("User is not authenticated");
     }
 
+    // Handle other errors.
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}. Body: ${await response.text()}`);
+    }
+
+    // Return the user.
     return response.json();
   };
 }
