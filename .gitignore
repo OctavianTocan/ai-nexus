@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -49,3 +49,29 @@ next-env.d.ts
 
 # Python
 __pycache__
+
+# Custom AI-Dev-Tools
+/packages/ai-dev-tools/
+# Symlinked from ai-dev-tools (keep local, don't track in git)
+.cursor/rules
+.cursor/rules/
+.cursor/commands
+.cursor/commands/
+.cursor/skills
+.cursor/skills/
+.claude/commands
+.claude/commands/
+.claude/agents
+.claude/agents/
+.claude/skills
+.claude/skills/
+.claude
+.claude/
+.tasks
+.tasks/
+.github/prompts
+.github/prompts/
+scripts
+scripts/
+AGENTS.md
+AGENTS.md/

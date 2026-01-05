@@ -6,7 +6,7 @@ console.log("Starting development servers...");
 // This is a fix for potential issues where the ports are not released.
 // Kill ghost processes on ports 3000 (Next.js) and 8000 (FastAPI)
 // .nothrow() keeps the script running even if no process is found
-await $`fuser -k 3000/tcp 8000/tcp`.quiet().nothrow();
+await $`fuser -k 3001/tcp 8000/tcp`.quiet().nothrow();
 // Remove the Next.js dev lock that causes the "Unable to acquire lock" error
 await $`rm -rf frontend/.next/dev/lock`.quiet().nothrow();
 
