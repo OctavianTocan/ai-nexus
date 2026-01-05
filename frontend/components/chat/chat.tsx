@@ -13,8 +13,8 @@ import {
 import type { PromptInputMessage } from "../ai-elements/prompt-input";
 import { useState, useEffect } from "react";
 import { Loader } from "../ai-elements/loader";
-import { ChatClient } from "@/lib/chat-client";
 import { useStickToBottomContext } from "use-stick-to-bottom";
+import { useChat } from "@/hooks/use-chat";
 
 // Scroll to bottom of the chat when the chat history changes.
 const ChatScrollAnchor = ({ track }: { track: number }) => {
@@ -29,6 +29,9 @@ const ChatScrollAnchor = ({ track }: { track: number }) => {
 };
 
 const Chat = () => {
+  // Chat Hook.
+  const { streamMessage } = useChat();
+
   // Message State.
   const [message, setMessage] = useState<PromptInputMessage>({
     text: "",
@@ -64,16 +67,19 @@ const Chat = () => {
     let assistantMessage = "";
 
     // Stream the response.
-    for await (const chunk of ChatClient.streamMessage(newMessage.text)) {
+    for await (const chunk of streamMessage(newMessage.text)) {
       assistantMessage += chunk || "";
+      console.log("chunk", chunk);
       // Update the assistant message in the chat history.
       setChatHistory((prev) => {
         // Create a new chat history array.
         const newChatHistory = [...prev];
         // Update the assistant message in the chat history.
+        // Info: Need to define all properties, so we satisfy the Typescript compiler, because using the spread operator (...) can sometimes result in optional properties being treated as undefined.
         const newMessageIndex = newChatHistory.length - 1;
         newChatHistory[newMessageIndex] = {
           ...newChatHistory[newMessageIndex],
+          type: "assistant",
           content: assistantMessage,
         };
         return newChatHistory;
@@ -81,6 +87,8 @@ const Chat = () => {
       // Stop the loading state. (We're already receiving the response, so we can stop the loading state).
       setIsLoading(false);
     }
+
+    console.log("assistantMessage", assistantMessage);
   };
 
   return (
@@ -91,7 +99,7 @@ const Chat = () => {
             <ConversationContent>
               {chatHistory.length === 0 ? (
                 <div className="text-center my-auto font-semibold mt-8">
-                  <p className="text-3xl mt-4 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent animate-gradient">
+                  <p className="text-3xl mt-4 bg-linear-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent animate-gradient">
                     What can we build together?
                   </p>
                 </div>
@@ -131,7 +139,7 @@ const Chat = () => {
             {/* Text Area */}
             <PromptInputTextarea
               placeholder="Ask anything about your memories or search the web..."
-              className="pr-16 bg-white min-h-[50px]"
+              className="pr-16 bg-white min-h-12.5"
               onChange={(e) =>
                 setMessage({ ...message, text: e.currentTarget.value })
               }
