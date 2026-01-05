@@ -63,6 +63,8 @@ const Chat = () => {
       { type: "assistant", content: "" },
     ]);
 
+    console.log("newMessage", newMessage);
+
     // Placeholder for the assistant message.
     let assistantMessage = "";
 

@@ -17,9 +17,6 @@ export function useChat() {
       },
     });
 
-    // TODO: For some reason, we're not getting a response from the chat API.
-    console.log("response", response);
-
     // Handle errors.
     if (!response.body) throw new Error("Failed to get body");
 

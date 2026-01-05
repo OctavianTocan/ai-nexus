@@ -11,8 +11,11 @@ export function useAuthedFetch() {
 
   // Return a function that fetches a URL from the API.
   return async function authedFetch(url: string, options?: RequestInit) {
+    // Construct the full URL to fetch from the API.
+    const fetchUrl = `${process.env.NEXT_PUBLIC_API_URL}${url}`;
+
     // Fetch the URL from the API.
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${url}`, {
+    const response = await fetch(fetchUrl, {
       ...options,
       // Include the session token in the request. (HTTPOnly Cookie)
       credentials: "include",
@@ -30,6 +33,6 @@ export function useAuthedFetch() {
     }
 
     // Return the user.
-    return response.json();
+    return response;
   };
 }
