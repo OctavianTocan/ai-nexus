@@ -14,3 +14,10 @@
 - Test what the code does, not how SQLAlchemy works (or other ORMs).
 
 - Test full flows: API -> Service -> Database. This catches real issues without testing framework internals.
+
+So, for today:
+
+#1: Create New Database Models
+
+1. New Conversation/Message Models for Database.
+2. Test the models through the API.
