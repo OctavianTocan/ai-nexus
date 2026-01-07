@@ -1,5 +1,8 @@
 import uuid
+
 from fastapi_users import schemas
+
+# These schemas DO NOT create tables. These are Pydantic schemas for the API layer. (Which presumably means that it makes it easier for us to understand/validate the input/outputs).
 
 
 # What the API returns when you ask for a user
