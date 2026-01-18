@@ -55,14 +55,16 @@ export function useChat() {
           const data = message.slice(6);
 
           // Handle the stream end event.
-          if (data === "[DONE]") {
-            // Return the result string.
+          if (data.includes("[DONE]")) {
             yield buffer;
+            // Need this or we get an error when parsing the JSON below.
+            break;
           }
 
           try {
             // Parse the message as JSON.
             const json = JSON.parse(data);
+            console.log("Chat JSON Output", json);
 
             // Yield the delta content.
             yield json.type === "delta" ? json.content : null;
