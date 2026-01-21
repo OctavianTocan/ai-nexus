@@ -1,23 +1,16 @@
-from datetime import date, datetime
+from datetime import datetime
 from enum import Enum
-from sqlalchemy import Enum as SQLEnum
 
-from sqlalchemy import Date, DateTime, String, Text, text
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy import DateTime, String, Text
+from sqlalchemy import Enum as SQLEnum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from .db import Base
 
 
 class SenderType(Enum):
     AI = "ai"
     USER = "user"
-
-
-class Base(DeclarativeBase):
-    """
-    The base class for all ORM models.
-    Inherit from this class to create new database models.
-    """
-
-    pass
 
 
 # Define `Conversation` SQLAlchemy (table) model with fields:

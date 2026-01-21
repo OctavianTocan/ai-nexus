@@ -1,23 +1,21 @@
-from contextlib import asynccontextmanager
-from collections.abc import AsyncGenerator
-
-from app.db import create_db_and_tables, User
-
-from app.users import fastapi_users, auth_backend, current_active_user
-from fastapi import FastAPI, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
 import json
-from app.schemas import UserRead, UserCreate, UserUpdate
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+
 from agno.agent import Agent
 from agno.db.sqlite import SqliteDb
 from agno.models.google import Gemini
 from agno.os import AgentOS
 from agno.tools.mcp import MCPTools
-
 from dotenv import load_dotenv
-
+from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+
+from app.db import User, create_db_and_tables
+from app.schemas import UserCreate, UserRead, UserUpdate
+from app.users import auth_backend, current_active_user, fastapi_users
 
 
 # API Response Models.
@@ -116,20 +114,26 @@ def chat(
         The "type" key is either "delta" or "done".
     """
     # Create the Agno agent.
+    # TODO: We need a session_id here so we can persist the conversation history. This session_id should come from the database, and we should be able to use our Conversation model to create/use it.
     agno_agent = Agent(
         name="Agno Agent",
         user_id=str(user.id),
-        model=Gemini(id="gemini-2.0-flash"),
+        # When updating this, apparently the server needs to be restarted (?)
+        model=Gemini(id="gemini-3-flash-preview"),
         # Add a database to the Agent
         db=agno_db,
         # Add the Agno MCP server to the Agent
         tools=[MCPTools(transport="streamable-http", url="https://docs.agno.com/mcp")],
         # Add the previous session history to the context
         add_history_to_context=True,
+        num_history_runs=3,
         markdown=True,
     )
 
     def event_stream():
+        """
+        Stream!
+        """
         # Iterate Agno's streaming events
         for ev in agno_agent.run(request.question, stream=True):
             chunk = getattr(ev, "content", None)
