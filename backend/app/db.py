@@ -32,6 +32,7 @@ async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 # 5. Function to create tables on startup
 async def create_db_and_tables():
+    # Imported here to avoid circular dependencies while ensuring all models are created in the table.
     from . import models
 
     async with engine.begin() as conn:
