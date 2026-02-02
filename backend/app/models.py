@@ -76,25 +76,4 @@ class Message(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime)
     conversation: Mapped["Conversation"] = relationship(
         "Conversation", back_populates="messages"
-
-
-# Define `Conversation` SQLAlchemy (table) model with fields:
-#    - `id` (UUID, primary key)
-#    - `user_id` (UUID, foreign key to User)
-#    - `title` (string, max 255 chars)
-#    - `created_at` (datetime)
-#    - `updated_at` (datetime)
-class Conversation(Base):
-    __tablename__ = "conversations"
-    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(Uuid)
-    # Title is capped at 255 characters.
-    title: Mapped[str] = mapped_column(String(255))
-    # Dates.
-    created_at: Mapped[datetime] = mapped_column(DateTime)
-    updated_at: Mapped[datetime] = mapped_column(DateTime)
-    # Messages.
-    messages: Mapped[list["Message"]] = relationship(
-        "Message", back_populates="conversation"
     )
-    

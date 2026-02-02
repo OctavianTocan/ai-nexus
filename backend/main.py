@@ -27,7 +27,7 @@ from app.schemas import (
     UserUpdate,
 )
 from app.users import auth_backend, current_active_user, fastapi_users
-from backend.app.models import Conversation
+from app.models import Conversation
 
 
 # Load the environment variables.

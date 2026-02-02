@@ -7,7 +7,7 @@ import uuid
 from typing import Optional
 
 from app.models import Conversation
-from app.schemas import ConversationCreate, ConversationResponse, ConversationUpdate
+from app.schemas import ConversationCreate
 
 
 # TODO: I kind of want to make an assumption here that the user has to have sent a message already before we ever create a conversation, but that might be problematic, so let's not.
