@@ -10,7 +10,7 @@ These tasks must be completed to enable the core conversation management functio
 
 ### Backend Issues
 
-#### 1. Fix Duplicate Definitions in `models.py`
+<!-- #### 1. Fix Duplicate Definitions in `models.py` -->
 <!-- **File:** `backend/app/models.py` -->
 <!-- **Issue:** `SenderType`, `Conversation`, and `Message` are defined twice (lines 19-31 and 86-119) -->
 <!-- **Action:** Delete the duplicate definitions -->

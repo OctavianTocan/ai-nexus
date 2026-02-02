@@ -10,6 +10,7 @@ from app.models import Conversation
 from app.schemas import ConversationCreate, ConversationResponse, ConversationUpdate
 
 
+# TODO: I kind of want to make an assumption here that the user has to have sent a message already before we ever create a conversation, but that might be problematic, so let's not.
 async def create_conversation_service(
     user_id: uuid.UUID, session: AsyncSession, schema_data: ConversationCreate
 ) -> Conversation:

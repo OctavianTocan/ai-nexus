@@ -59,10 +59,12 @@ class ChatRequest(BaseModel):
     Request model for the chat endpoint.
     Args:
         question: The question to ask the Agno agent.
-        conversation_id: The conversation ID to link messages to.
+        conversation_id: The conversation ID to link messages to. (When not provided, we create a new conversation.)
     """
 
+    # The question to ask the Agno agent.
     question: str
+    # Optional conversation ID to link messages to. (When not provided, we create a new conversation.)
     conversation_id: Optional[uuid.UUID]
 
 
