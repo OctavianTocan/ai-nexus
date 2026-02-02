@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { API_BASE_URL, API_ENDPOINTS } from "@/lib/api";
+import { API_BASE_URL } from "@/lib/api";
 
 /*
 * This function returns a function that fetches a URL from the API.

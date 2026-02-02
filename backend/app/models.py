@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 # TODO: Add ForeignKey import when implementing relationships
 # from sqlalchemy import ForeignKey
-from sqlalchemy import DateTime, String, Text, Uuid
+from sqlalchemy import DateTime, ForeignKey, String, Text, Uuid
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -39,7 +39,7 @@ class SenderType(Enum):
 class Conversation(Base):
     __tablename__ = "conversations"
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(Uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))
     # Title is capped at 255 characters.
     title: Mapped[str] = mapped_column(String(255))
     # Dates.
@@ -70,7 +70,10 @@ class Conversation(Base):
 class Message(Base):
     __tablename__ = "messages"
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    conversation_id: Mapped[uuid.UUID] = mapped_column(Uuid)
+    # Needs to be a foreign key to the conversations table.
+    conversation_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("conversations.id")
+    )
     content: Mapped[str] = mapped_column(Text())
     sender: Mapped[SenderType] = mapped_column(SQLEnum(SenderType))
     created_at: Mapped[datetime] = mapped_column(DateTime)
