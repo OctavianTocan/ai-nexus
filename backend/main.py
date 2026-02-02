@@ -19,6 +19,7 @@ from sqlalchemy import select
 from app.crud.conversation import create_conversation_service
 from app.db import User, create_db_and_tables, get_async_session
 from app.schemas import (
+    ChatRequest,
     ConversationCreate,
     ConversationResponse,
     UserCreate,
@@ -26,35 +27,6 @@ from app.schemas import (
     UserUpdate,
 )
 from app.users import auth_backend, current_active_user, fastapi_users
-
-
-# API Response Models.
-class ChatResponse(BaseModel):
-    """
-    This model is used to represent the response from the Agno agent.
-    Args:
-        response: The response from the Agno agent.
-    Returns:
-        A JSON object with a "response" key.
-        The "response" key contains the response from the Agno agent.
-    """
-
-    # The response from the Agno agent.
-    response: str
-
-
-# API Request Models.
-class ChatRequest(BaseModel):
-    """
-    This model is used to represent the request to the chat API.
-    Args:
-        question: The question to ask the Agno agent.
-    Returns:
-        A JSON object with a "question" key.
-    """
-
-    # The question to ask the Agno agent.
-    question: str
 
 
 # Load the environment variables.
@@ -185,10 +157,10 @@ def chat(
     #     agno_session_id = str(db_conversation.id)  # Use your ID as Agno session
 
     # Create to Agno agent.
-    # TODO: Pass session_id to Agent constructor
     agno_agent = Agent(
         name="Agno Agent",
         user_id=str(user.id),
+        session_id=(str(request.conversation_id) if request.conversation_id else None),
         # When updating this, apparently the server needs to be restarted (?)
         model=Gemini(id="gemini-3-flash-preview"),
         # Add a database to the Agent
@@ -199,8 +171,11 @@ def chat(
         add_history_to_context=True,
         num_history_runs=3,
         markdown=True,
-        # TODO: Add session_id parameter here: session_id=agno_session_id
     )
+
+    # This is actually our final conversation id. (Gets created if we didn't pass one in.)
+    # TODO: We need to return this to the frontend in some way, so it can keep track of it.
+    # agno_agent.session_id;
 
     def event_stream():
         """
