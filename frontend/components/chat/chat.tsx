@@ -15,6 +15,17 @@ import { useState, useEffect } from "react";
 import { Loader } from "../ai-elements/loader";
 import { useStickToBottomContext } from "use-stick-to-bottom";
 import { useChat } from "@/hooks/use-chat";
+import type { UUID } from "crypto";
+
+/*
+  Props for the Chat component.
+  Args:
+    conversationId: The ID of the conversation to link messages to. (When not provided, we create a new conversation.)
+*/
+type ChatProps = {
+  // The ID of the conversation to link messages to. (When not provided, we create a new conversation.)
+  conversationId: UUID;
+};
 
 // Scroll to bottom of the chat when the chat history changes.
 const ChatScrollAnchor = ({ track }: { track: number }) => {
@@ -28,7 +39,8 @@ const ChatScrollAnchor = ({ track }: { track: number }) => {
   return null;
 };
 
-const Chat = () => {
+const Chat = ({ conversationId }: ChatProps) => {
+
   // Chat Hook.
   const { streamMessage } = useChat();
 
@@ -159,4 +171,6 @@ const Chat = () => {
     </>
   );
 };
+
+// Export the Chat component.
 export default Chat;

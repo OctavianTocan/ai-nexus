@@ -16,13 +16,13 @@ These tasks must be completed to enable the core conversation management functio
 <!-- **Action:** Delete the duplicate definitions -->
 <!-- **Estimated Time:** 5 minutes -->
 
-#### 2. Fix `/api/v1/conversations` Endpoint Response
-**File:** `backend/main.py` (lines 82-106)
+<!-- #### 2. Fix `/api/v1/conversations` Endpoint Response -->
+<!-- **File:** `backend/main.py` (lines 82-106)
 **Current Bug:**
 - Returns `id=user.id` instead of the actual conversation ID
 - Missing `created_at` and `updated_at` fields in response
 **Solution:** The `create_conversation_service` function returns a proper `Conversation` object. Use it to construct the `ConversationResponse` correctly.
-**Estimated Time:** 10 minutes
+**Estimated Time:** 10 minutes -->
 
 #### 3. Implement `get_conversations_for_user` CRUD Function
 **File:** `backend/app/crud/conversation.py` (lines 62-82)

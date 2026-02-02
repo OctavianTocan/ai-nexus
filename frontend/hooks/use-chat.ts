@@ -1,4 +1,5 @@
 import { useAuthedFetch } from "@/hooks/use-authed-fetch";
+// TODO: This hook might need a better name.
 
 /*
     Custom hook to interact with the chat API.
