@@ -4,19 +4,28 @@
 import { useCreateConversation } from "@/hooks/use-create-conversation";
 import { useRouter } from "next/navigation";
 
+/**
+ * Page is the landing page of the application.
+ * It displays a button to create a new conversation.
+ * When the button is clicked, it creates a new conversation and navigates to the new conversation route.
+ * 
+ * @returns The landing page of the application.
+ */
 export default function Page() {
   const router = useRouter();
+  // Create a new conversation. Returns a function that creates a new conversation.
+  const createConversation = useCreateConversation();
 
-
+  // Handle the new conversation button click.
   const handleNewConversation = async () => {
-    // Call the useCreateConversation hook to create a new conversation, and then navigate to the new conversation route.
-    const newConversationId = await useCreateConversation();
+    // Call the createConversation function to create a new conversation, and then navigate to the new conversation route.
+    const newConversationId = await createConversation();
     // Navigate to the new conversation route.
     router.push(`/c/${newConversationId}`);
   };
-  // TODO: Our chat itself doesn't have a conversation ID. I'm not sure if it's a good idea to make it into a dynamic route? Maybe it is? This needs some research. I've seen it done before that way, though not sure if it's the best way to go.
-  // TODO: Naturally, we should have a route for the chat itself, at least. Or, a page of some sort if we're doing SPA.
+
+  // Render the page.
   return <div>
-    <button className="" onClick={handleNewConversation}>New Conversation</button>
+    <button onClick={handleNewConversation}>New Conversation</button>
   </div>;
 }

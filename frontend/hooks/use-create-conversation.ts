@@ -1,21 +1,30 @@
 import { useAuthedFetch } from "./use-authed-fetch";
 import { API_ENDPOINTS } from "@/lib/api";
 
-export async function useCreateConversation(): Promise<string> {
-    // TODO: This needs to call the backend using useAuthedFetch, create a new conversation using the /api/v1/conversations endpoint, and return the conversation ID.
-    // We will use this hook to create new conversations from the frontend; For now, just from the homepage button.
-
-    // TODO: The endpoints should go into a constants file somewhere.
+/**
+ * useCreateConversation is a hook that creates a new conversation.
+ * 
+ * @returns A function that creates a new conversation.
+ * @returns The conversation ID.
+ */
+export function useCreateConversation() {
     const fetcher = useAuthedFetch();
-    // Create a new conversation.
-    const response = await fetcher(API_ENDPOINTS.conversations.create, {
-        method: "POST",
-    });
 
-    // Get the conversation ID from the response.
-    const jsonData = await response.json();
-    // Return the conversation ID.
-    return jsonData.id as string;
+    // Create a new conversation.
+    async function createConversation(): Promise<string> {
+        // Create a new conversation.
+        const response = await fetcher(API_ENDPOINTS.conversations.create, {
+            method: "POST",
+        });
+
+        // Get the conversation ID from the response.
+        const jsonData = await response.json();
+        // Return the conversation ID.
+        return jsonData.id as string;
+    };
+
+    // Return the createConversation function.
+    return createConversation;
 }
 
 /*
