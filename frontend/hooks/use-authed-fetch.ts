@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { API_BASE_URL, API_ENDPOINTS } from "@/lib/api";
 
 /*
 * This function returns a function that fetches a URL from the API.
@@ -10,9 +11,9 @@ export function useAuthedFetch() {
   const router = useRouter();
 
   // Return a function that fetches a URL from the API.
-  return async function authedFetch(url: string, options?: RequestInit) {
+  return async function authedFetch(endpoint: string | (() => string), options?: RequestInit) {
     // Construct the full URL to fetch from the API.
-    const fetchUrl = `${process.env.NEXT_PUBLIC_API_URL}${url}`;
+    const fetchUrl = `${API_BASE_URL}${typeof endpoint === "function" ? endpoint() : endpoint}`;
 
     // Fetch the URL from the API.
     const response = await fetch(fetchUrl, {
