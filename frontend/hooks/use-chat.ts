@@ -1,4 +1,5 @@
 import { useAuthedFetch } from "@/hooks/use-authed-fetch";
+// TODO: This hook might need a better name.
 
 /*
     Custom hook to interact with the chat API.
@@ -6,11 +7,11 @@ import { useAuthedFetch } from "@/hooks/use-authed-fetch";
 export function useChat() {
   const fetcher = useAuthedFetch();
 
-  async function* streamMessage(message: string): AsyncGenerator<string> {
+  async function* streamMessage(message: string, conversationId: string): AsyncGenerator<string> {
     // Send the message to the chat API, and get the response.
     const response = await fetcher("/api/chat", {
       method: "POST",
-      body: JSON.stringify({ question: message }),
+      body: JSON.stringify({ question: message, conversation_id: conversationId }),
       headers: {
         "Content-Type": "application/json",
         Accept: "text/event-stream",
@@ -55,14 +56,16 @@ export function useChat() {
           const data = message.slice(6);
 
           // Handle the stream end event.
-          if (data === "[DONE]") {
-            // Return the result string.
+          if (data.includes("[DONE]")) {
             yield buffer;
+            // Need this or we get an error when parsing the JSON below.
+            break;
           }
 
           try {
             // Parse the message as JSON.
             const json = JSON.parse(data);
+            console.log("Chat JSON Output", json);
 
             // Yield the delta content.
             yield json.type === "delta" ? json.content : null;

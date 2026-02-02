@@ -24,6 +24,7 @@ class Base(DeclarativeBase):
 class User(SQLAlchemyBaseUserTableUUID, Base):
     pass
 
+
 # 4. Create the database engine (connection pool)
 engine = create_async_engine(DATABASE_URL)
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
@@ -31,13 +32,18 @@ async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 # 5. Function to create tables on startup
 async def create_db_and_tables():
+    # Imported here to avoid circular dependencies while ensuring all models are created in the table.
+    from . import models
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
 
 # 6. Dependency: Get a database session
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     async with async_session_maker() as session:
         yield session
+
 
 # 7. Dependency: Get a user database (for auth operations)
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):

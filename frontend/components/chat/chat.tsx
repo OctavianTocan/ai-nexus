@@ -16,6 +16,16 @@ import { Loader } from "../ai-elements/loader";
 import { useStickToBottomContext } from "use-stick-to-bottom";
 import { useChat } from "@/hooks/use-chat";
 
+/*
+  Props for the Chat component.
+  Args:
+    conversationId: The ID of the conversation to link messages to. (When not provided, we create a new conversation.)
+*/
+type ChatProps = {
+  // The ID of the conversation to link messages to. (When not provided, we create a new conversation.)
+  conversationId: string;
+};
+
 // Scroll to bottom of the chat when the chat history changes.
 const ChatScrollAnchor = ({ track }: { track: number }) => {
   // Get the scroll to bottom context. (This works because the Conversation component is a child of the ConversationContent component, and that has the useStickToBottomContext hook.)
@@ -28,7 +38,9 @@ const ChatScrollAnchor = ({ track }: { track: number }) => {
   return null;
 };
 
-const Chat = () => {
+// TODO: We need to use the conversationId to get the messages for the conversation from the backend database.
+const Chat = ({ conversationId }: ChatProps) => {
+
   // Chat Hook.
   const { streamMessage } = useChat();
 
@@ -68,10 +80,9 @@ const Chat = () => {
     // Placeholder for the assistant message.
     let assistantMessage = "";
 
-    // Stream the response.
-    for await (const chunk of streamMessage(newMessage.text)) {
+    // Stream the response to the conversation with the given conversationId.
+    for await (const chunk of streamMessage(newMessage.text, conversationId)) {
       assistantMessage += chunk || "";
-      console.log("chunk", chunk);
       // Update the assistant message in the chat history.
       setChatHistory((prev) => {
         // Create a new chat history array.
@@ -159,4 +170,6 @@ const Chat = () => {
     </>
   );
 };
+
+// Export the Chat component.
 export default Chat;
