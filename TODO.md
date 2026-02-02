@@ -24,6 +24,7 @@ These tasks must be completed to enable the core conversation management functio
 **Solution:** The `create_conversation_service` function returns a proper `Conversation` object. Use it to construct the `ConversationResponse` correctly.
 **Estimated Time:** 10 minutes -->
 
+<!-- TODO: We can do this later. -->
 #### 3. Implement `get_conversations_for_user` CRUD Function
 **File:** `backend/app/crud/conversation.py` (lines 62-82)
 **Status:** Currently commented out
@@ -33,26 +34,26 @@ These tasks must be completed to enable the core conversation management functio
 
 ### Frontend Issues
 
-#### 4. Create Dynamic Route for Conversations
+<!-- #### 4. Create Dynamic Route for Conversations
 **File:** `frontend/app/c/[conversationId]/page.tsx` (new file)
 **Action:** Create a new page component that:
 - Uses `useParams()` to get `conversationId` from URL
 - Renders the Chat component with the conversation ID
-**Estimated Time:** 20 minutes
+**Estimated Time:** 20 minutes -->
 
-#### 5. Update Chat Component to Accept Conversation ID
+<!-- #### 5. Update Chat Component to Accept Conversation ID
 **File:** `frontend/components/chat/chat.tsx`
 **Action:**
 - Accept `conversationId` as a prop
 - Pass it to the `useChat` hook
 - Remove hardcoded conversation logic
-**Estimated Time:** 15 minutes
+**Estimated Time:** 15 minutes -->
 
-#### 6. Update `useChat` Hook to Include Conversation ID
+<!-- #### 6. Update `useChat` Hook to Include Conversation ID
 **File:** `frontend/hooks/use-chat.ts`
 **Current Issue:** Only sends `question` to `/api/chat`
 **Action:** Update to send `{ question, conversation_id }` in request body
-**Estimated Time:** 10 minutes
+**Estimated Time:** 10 minutes -->
 
 #### 7. Create `useCreateConversation` Hook
 **File:** `frontend/hooks/use-create-conversation.ts` (new file)

@@ -15,7 +15,6 @@ import { useState, useEffect } from "react";
 import { Loader } from "../ai-elements/loader";
 import { useStickToBottomContext } from "use-stick-to-bottom";
 import { useChat } from "@/hooks/use-chat";
-import type { UUID } from "crypto";
 
 /*
   Props for the Chat component.
@@ -24,7 +23,7 @@ import type { UUID } from "crypto";
 */
 type ChatProps = {
   // The ID of the conversation to link messages to. (When not provided, we create a new conversation.)
-  conversationId: UUID;
+  conversationId: string;
 };
 
 // Scroll to bottom of the chat when the chat history changes.
@@ -39,6 +38,7 @@ const ChatScrollAnchor = ({ track }: { track: number }) => {
   return null;
 };
 
+// TODO: We need to use the conversationId to get the messages for the conversation from the backend database.
 const Chat = ({ conversationId }: ChatProps) => {
 
   // Chat Hook.
@@ -80,10 +80,9 @@ const Chat = ({ conversationId }: ChatProps) => {
     // Placeholder for the assistant message.
     let assistantMessage = "";
 
-    // Stream the response.
-    for await (const chunk of streamMessage(newMessage.text)) {
+    // Stream the response to the conversation with the given conversationId.
+    for await (const chunk of streamMessage(newMessage.text, conversationId)) {
       assistantMessage += chunk || "";
-      console.log("chunk", chunk);
       // Update the assistant message in the chat history.
       setChatHistory((prev) => {
         // Create a new chat history array.

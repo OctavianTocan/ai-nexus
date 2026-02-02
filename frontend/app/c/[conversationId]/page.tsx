@@ -7,5 +7,5 @@ export default function ConversationPage() {
     // Get the conversation ID from the params.
     const conversationId = params.conversationId as string;
 
-    return <Chat />;
+    return <Chat conversationId={conversationId} />;
 }

@@ -7,11 +7,11 @@ import { useAuthedFetch } from "@/hooks/use-authed-fetch";
 export function useChat() {
   const fetcher = useAuthedFetch();
 
-  async function* streamMessage(message: string): AsyncGenerator<string> {
+  async function* streamMessage(message: string, conversationId: string): AsyncGenerator<string> {
     // Send the message to the chat API, and get the response.
     const response = await fetcher("/api/chat", {
       method: "POST",
-      body: JSON.stringify({ question: message }),
+      body: JSON.stringify({ question: message, conversation_id: conversationId }),
       headers: {
         "Content-Type": "application/json",
         Accept: "text/event-stream",
