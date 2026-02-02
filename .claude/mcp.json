@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "claude-tasks-search": {
+      "type": "stdio",
+      "command": "bun",
+      "args": ["scripts/claude-tasks/mcp-server.cjs"]
+    }
+  }
+}
