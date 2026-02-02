@@ -12,9 +12,10 @@ export function useCreateConversation() {
 
     // Create a new conversation.
     async function createConversation(): Promise<string> {
-        // Create a new conversation.
+        // Send a POST request to the /api/v1/conversations endpoint to create a new conversation.
         const response = await fetcher(API_ENDPOINTS.conversations.create, {
             method: "POST",
+            body: JSON.stringify({}),
         });
 
         // Get the conversation ID from the response.
@@ -27,6 +28,7 @@ export function useCreateConversation() {
     return createConversation;
 }
 
+// TODO
 /*
 #### 7. Create `useCreateConversation` Hook
 **File:** `frontend/hooks/use-create-conversation.ts` (new file)
