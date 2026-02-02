@@ -1,6 +1,7 @@
 # CRUD operations for Conversation model
 # TODO: Implement these functions to manage conversations
 
+from datetime import datetime
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy import select, and_
 import uuid
@@ -25,7 +26,9 @@ async def create_conversation_service(
     # - Use LLM to generate from first message in chat endpoint?
     new_conversation = Conversation(
         user_id=user_id,
-        title="New Conversation",  # TODO: Replace with LLM-generated or schema_data.title
+        title="New Conversation",  # TODO: Replace with LLM-generated or schema_data.title,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
     )
     session.add(new_conversation)
     await session.commit()

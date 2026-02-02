@@ -39,7 +39,7 @@ class SenderType(Enum):
 class Conversation(Base):
     __tablename__ = "conversations"
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("users.id"))
+    user_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("user.id"))
     # Title is capped at 255 characters.
     title: Mapped[str] = mapped_column(String(255))
     # Dates.

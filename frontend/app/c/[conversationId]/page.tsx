@@ -8,22 +8,15 @@ import Chat from "@/components/chat/chat";
  * @returns The Chat component with the specified conversation context.
  */
 interface ConversationPageProps {
-    params: {
-        conversationId: string;
-    };
+    params: Promise<{ conversationId: string }>;
 };
 
-/**
- * Props for the ConversationPage component.
- *
- * @property params - An object containing route parameters.
- * @property params.conversationId - The unique identifier for the conversation being displayed.
- */
-export default function ConversationPage({ params }: ConversationPageProps) {
-
+export default async function ConversationPage({ params }: ConversationPageProps) {
+    // Get the conversation ID from the params.
+    const { conversationId } = await params;
     // Render the chat component.
     return <div>
-        <h1>Conversation {params.conversationId}</h1>
-        <Chat conversationId={params.conversationId} />
+        <h1>Conversation {conversationId}</h1>
+        <Chat conversationId={conversationId} />
     </div>;
 }

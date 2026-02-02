@@ -16,6 +16,9 @@ export function useCreateConversation() {
         const response = await fetcher(API_ENDPOINTS.conversations.create, {
             method: "POST",
             body: JSON.stringify({}),
+            headers: {
+                "content-type": "application/json",
+            }
         });
 
         // Get the conversation ID from the response.
