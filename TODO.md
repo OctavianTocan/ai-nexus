@@ -429,21 +429,95 @@ class ConversationUpdate(BaseModel):
 **Current Issue:** `cookie_max_age=3600` (1 hour) is short for a chat app
 **Action:** Increase to 7 days (604800 seconds) or implement refresh tokens
 
+### Deployment & Infrastructure
+
+#### 62. Set Up Production Deployment
+
+**Current Issue:** App only runs locally; no deployment configuration exists
+**Action:** Configure deployment for production hosting
+
+**Option A: Vercel (Frontend) + Railway/Render (Backend)**
+
+- Deploy Next.js frontend to Vercel (free tier available)
+- Deploy FastAPI backend to Railway or Render (supports Python)
+- Configure environment variables on both platforms
+- Set up proper CORS for production domains
+
+**Option B: Single Platform (Railway or Render)**
+
+- Deploy both frontend and backend to same platform
+- Simpler configuration, single billing
+- Railway: Good Python support, easy SQLite → PostgreSQL migration
+- Render: Free tier, automatic SSL, good for small projects
+
+**Option C: Docker + Any Cloud (AWS, GCP, DigitalOcean)**
+
+- Create Dockerfile for backend
+- Create Dockerfile for frontend (or use Vercel)
+- More control but more setup
+
+**Tasks:**
+
+1. Create `Dockerfile` for backend
+2. Create `docker-compose.yml` for local development parity
+3. Add `vercel.json` for frontend configuration (if using Vercel)
+4. Migrate from SQLite to PostgreSQL for production (SQLite doesn't scale)
+5. Set up environment variables for production
+6. Configure production CORS origins (Task 38 prerequisite)
+7. Set up CI/CD pipeline (GitHub Actions)
+
+**Files to create:**
+
+- `backend/Dockerfile`
+- `docker-compose.yml`
+- `frontend/vercel.json` (optional)
+- `.github/workflows/deploy.yml`
+
+#### 63. Migrate Database to PostgreSQL
+
+**File:** `backend/app/db.py`
+**Current Issue:** SQLite is fine for development but doesn't scale for production
+**Action:**
+
+- Add PostgreSQL support via `asyncpg`
+- Use `DATABASE_URL` environment variable to switch between SQLite (dev) and PostgreSQL (prod)
+- Update connection string handling
+  **Why Needed:** Production-ready database that supports concurrent connections
+
+#### 64. Add Health Check Endpoint
+
+**File:** `backend/main.py`
+**Current Issue:** No way for hosting platforms to verify the app is running
+**Action:** Add `GET /health` endpoint that returns `{"status": "ok"}`
+**Why Needed:** Required by most hosting platforms for health monitoring
+
+#### 65. Configure Production Environment Variables
+
+**Files:** Platform-specific (Vercel, Railway, etc.)
+**Action:** Document and configure:
+
+- `AUTH_SECRET` - JWT signing secret (generate secure random string)
+- `DATABASE_URL` - PostgreSQL connection string
+- `GOOGLE_API_KEY` - For Gemini model (Agno)
+- `NEXT_PUBLIC_API_URL` - Backend URL for frontend
+- `ALLOWED_ORIGINS` - CORS origins for production
+- `ENV=prod` - Enable secure cookies
+
 ### Accessibility
 
-#### 62. Add Skip-to-Content Link
+#### 66. Add Skip-to-Content Link
 
 **File:** `frontend/app/layout.tsx`
 **Current Issue:** Keyboard users can't skip navigation
 **Action:** Add skip link at the top of the page
 
-#### 63. Add Focus Management After Navigation
+#### 67. Add Focus Management After Navigation
 
 **Files:** `frontend/app/page.tsx`, `frontend/components/chat/chat.tsx`
 **Current Issue:** After creating a conversation, focus isn't moved to the chat input
 **Action:** Use `useRef` and `focus()` after navigation
 
-#### 64. Add ARIA Live Regions for Streaming
+#### 68. Add ARIA Live Regions for Streaming
 
 **File:** `frontend/components/chat/chat.tsx`
 **Current Issue:** Screen readers won't announce new message content
@@ -525,21 +599,556 @@ class ConversationUpdate(BaseModel):
 
 ---
 
+### Sixth Sprint (Deployment & Production)
+
+**Goal:** Deploy to production and make the app publicly accessible
+
+1. Add health check endpoint (Task 64)
+2. Configure production environment variables (Task 65)
+3. Make CORS origins configurable (Task 38)
+4. Create Dockerfiles for backend (Task 62)
+5. Migrate database to PostgreSQL (Task 63)
+6. Deploy backend to Railway/Render
+7. Deploy frontend to Vercel
+8. Set up CI/CD pipeline
+
+---
+
+## 🔀 Stacked PR Strategy
+
+This section outlines how to split the work into stacked PRs (PRs that build on each other). Each PR should be reviewable independently while building toward the sprint goal.
+
+### How Stacked PRs Work
+
+```
+main
+  └── PR #1: auth-form-errors (base: main)
+        └── PR #2: auto-login-after-signup (base: PR #1)
+              └── PR #3: conversation-list-backend (base: PR #2)
+                    └── PR #4: conversation-list-frontend (base: PR #3)
+```
+
+**Workflow:**
+
+1. Create branch from `main` for PR #1
+2. Create branch from PR #1's branch for PR #2
+3. When PR #1 merges, rebase PR #2 onto `main`
+4. Continue the chain
+
+**Tools:** Consider using [Graphite](https://graphite.dev/), [ghstack](https://github.com/ezyang/ghstack), or manual git rebase
+
+---
+
+### Sprint 1 PRs: Authentication & Basic Navigation
+
+#### PR 1.1: `feat/auth-form-error-states`
+
+**Base:** `main`
+**Tasks:** 9, 10, 31
+**Files:**
+
+- `frontend/components/login-form.tsx`
+- `frontend/components/signup-form.tsx`
+
+**Changes:**
+
+- Add error state and display to login form
+- Add success/error feedback to signup form
+- Add loading states to both forms
+
+**Why standalone:** Pure frontend, no backend dependencies, improves UX immediately
+
+---
+
+#### PR 1.2: `feat/auto-login-after-registration`
+
+**Base:** PR 1.1
+**Tasks:** 11
+**Files:**
+
+- `frontend/components/signup-form.tsx`
+- `backend/main.py` (optional: add login-after-register endpoint)
+
+**Changes:**
+
+- After successful registration, automatically log the user in
+- Redirect to home page
+
+**Why stacked:** Builds on error handling from PR 1.1
+
+---
+
+#### PR 1.3: `fix/backend-cleanup`
+
+**Base:** `main` (can merge independently)
+**Tasks:** 12
+**Files:**
+
+- `backend/main.py`
+
+**Changes:**
+
+- Remove duplicate `event_stream` function (lines 352-374)
+
+**Why standalone:** Quick fix, no dependencies, reduces tech debt
+
+---
+
+#### PR 1.4: `feat/conversation-list-backend`
+
+**Base:** PR 1.3
+**Tasks:** 14, 15
+**Files:**
+
+- `backend/app/crud/conversation.py`
+- `backend/main.py`
+
+**Changes:**
+
+- Implement `get_conversations_for_user` CRUD function
+- Create GET `/api/v1/conversations` endpoint
+
+**Why stacked:** Backend must exist before frontend can use it
+
+---
+
+#### PR 1.5: `feat/conversation-sidebar`
+
+**Base:** PR 1.4
+**Tasks:** 18, 19, 20
+**Files:**
+
+- `frontend/components/conversation-sidebar.tsx` (new)
+- `frontend/app/page.tsx`
+- `frontend/app/c/[conversationId]/page.tsx`
+- `frontend/components/chat/chat.tsx`
+
+**Changes:**
+
+- Create sidebar component with conversation list
+- Integrate sidebar into home and chat pages
+- Widen chat layout
+
+**Why stacked:** Depends on backend endpoint from PR 1.4
+
+---
+
+### Sprint 2 PRs: Security & Message History
+
+#### PR 2.1: `feat/conversation-ownership-security`
+
+**Base:** `main` (after Sprint 1 merges)
+**Tasks:** 13
+**Files:**
+
+- `backend/main.py`
+- `backend/app/crud/conversation.py`
+
+**Changes:**
+
+- Add ownership verification to `/api/chat` endpoint
+- Return 403 if user doesn't own the conversation
+
+**Why standalone:** Critical security fix, no frontend changes needed
+
+---
+
+#### PR 2.2: `feat/get-single-conversation`
+
+**Base:** PR 2.1
+**Tasks:** 16, 17
+**Files:**
+
+- `backend/app/crud/conversation.py`
+- `backend/main.py`
+
+**Changes:**
+
+- Implement `get_conversation` CRUD function
+- Create GET `/api/v1/conversations/:id` endpoint
+
+**Why stacked:** Uses ownership verification pattern from PR 2.1
+
+---
+
+#### PR 2.3: `feat/message-history-backend`
+
+**Base:** PR 2.2
+**Tasks:** 26
+**Files:**
+
+- `backend/main.py`
+- `backend/app/crud/message.py` (optional)
+
+**Changes:**
+
+- Create GET `/api/v1/conversations/:id/messages` endpoint
+
+**Why stacked:** Depends on conversation retrieval from PR 2.2
+
+---
+
+#### PR 2.4: `feat/message-history-frontend`
+
+**Base:** PR 2.3
+**Tasks:** 28
+**Files:**
+
+- `frontend/components/chat/chat.tsx`
+- `frontend/hooks/use-chat.ts`
+
+**Changes:**
+
+- Fetch existing messages on component mount
+- Display message history on page load/refresh
+
+**Why stacked:** Depends on messages endpoint from PR 2.3
+
+---
+
+### Sprint 3 PRs: Complete Conversation CRUD
+
+#### PR 3.1: `feat/conversation-update-backend`
+
+**Base:** `main` (after Sprint 2 merges)
+**Tasks:** 21, 22, 24
+**Files:**
+
+- `backend/app/schemas.py`
+- `backend/app/crud/conversation.py`
+- `backend/main.py`
+
+**Changes:**
+
+- Add `ConversationUpdate` schema
+- Implement `update_conversation` CRUD
+- Create PUT `/api/v1/conversations/:id` endpoint
+
+**Why grouped:** All related to update functionality
+
+---
+
+#### PR 3.2: `feat/conversation-delete-backend`
+
+**Base:** PR 3.1
+**Tasks:** 23, 25
+**Files:**
+
+- `backend/app/crud/conversation.py`
+- `backend/main.py`
+
+**Changes:**
+
+- Implement `delete_conversation` CRUD
+- Create DELETE `/api/v1/conversations/:id` endpoint
+
+**Why stacked:** Similar pattern to update, can share review context
+
+---
+
+#### PR 3.3: `feat/logout-endpoint`
+
+**Base:** `main` (can merge independently)
+**Tasks:** 27
+**Files:**
+
+- `backend/main.py`
+
+**Changes:**
+
+- Add logout router from FastAPI-Users
+
+**Why standalone:** Independent feature, quick win
+
+---
+
+#### PR 3.4: `feat/conversation-management-ui`
+
+**Base:** PR 3.2
+**Tasks:** 29, 30
+**Files:**
+
+- `frontend/components/conversation-sidebar.tsx`
+
+**Changes:**
+
+- Add rename conversation UI (inline edit or modal)
+- Add delete conversation UI (with confirmation)
+
+**Why stacked:** Depends on backend endpoints from PR 3.1 and 3.2
+
+---
+
+### Sprint 4 PRs: Polish & Testing
+
+#### PR 4.1: `feat/model-improvements`
+
+**Base:** `main` (after Sprint 3 merges)
+**Tasks:** 32, 34, 35
+**Files:**
+
+- `backend/app/models.py`
+- `backend/main.py`
+
+**Changes:**
+
+- Add User ↔ Conversation relationship
+- Update `updated_at` on new messages
+- Add cascade delete configuration
+
+**Why grouped:** All database/model related
+
+---
+
+#### PR 4.2: `feat/streaming-error-handling`
+
+**Base:** `main` (can merge independently)
+**Tasks:** 40
+**Files:**
+
+- `frontend/components/chat/chat.tsx`
+- `frontend/hooks/use-chat.ts`
+
+**Changes:**
+
+- Add try-catch around streaming
+- Display error state with retry button
+
+**Why standalone:** Frontend-only, improves resilience
+
+---
+
+#### PR 4.3: `feat/conversation-title-generation`
+
+**Base:** PR 4.1
+**Tasks:** 43
+**Files:**
+
+- `backend/main.py`
+- `frontend/components/chat/chat.tsx`
+
+**Changes:**
+
+- Generate title from first message using LLM
+- Update conversation title in UI
+
+**Why stacked:** May use model relationships from PR 4.1
+
+---
+
+#### PR 4.4: `test/backend-tests`
+
+**Base:** `main` (can merge independently)
+**Tasks:** 45, 46
+**Files:**
+
+- `backend/tests/` (new files)
+
+**Changes:**
+
+- Add Agno session memory tests
+- Add auth, CRUD, and streaming tests
+
+**Why standalone:** Tests don't block features
+
+---
+
+### Sprint 5 PRs: UI/UX Polish
+
+#### PR 5.1: `feat/home-page-redesign`
+
+**Base:** `main` (after Sprint 4 merges)
+**Tasks:** 48, 49
+**Files:**
+
+- `frontend/app/page.tsx`
+- `frontend/app/layout.tsx`
+
+**Changes:**
+
+- Improve home page design with hero section
+- Update app metadata (title, description)
+
+**Why grouped:** Both improve first impressions
+
+---
+
+#### PR 5.2: `feat/sidebar-enhancements`
+
+**Base:** PR 5.1
+**Tasks:** 50, 51, 53
+**Files:**
+
+- `frontend/components/conversation-sidebar.tsx`
+
+**Changes:**
+
+- Add conversation search/filter
+- Add relative timestamp formatting
+- Add empty state
+
+**Why stacked:** All sidebar improvements
+
+---
+
+#### PR 5.3: `feat/mobile-responsive`
+
+**Base:** PR 5.2
+**Tasks:** 52
+**Files:**
+
+- `frontend/app/c/[conversationId]/page.tsx`
+- `frontend/components/conversation-sidebar.tsx`
+
+**Changes:**
+
+- Add hamburger menu for mobile
+- Collapsible sidebar
+
+**Why stacked:** Builds on sidebar from PR 5.2
+
+---
+
+#### PR 5.4: `feat/chat-ux-improvements`
+
+**Base:** `main` (can merge independently)
+**Tasks:** 54, 55
+**Files:**
+
+- `frontend/components/chat/chat.tsx`
+
+**Changes:**
+
+- Improve empty chat state with suggestions
+- Add typing indicator animation
+
+**Why standalone:** Independent chat improvements
+
+---
+
+### Sprint 6 PRs: Deployment & Production
+
+#### PR 6.1: `infra/production-config`
+
+**Base:** `main` (after Sprint 5 merges)
+**Tasks:** 38, 64, 65
+**Files:**
+
+- `backend/main.py`
+- `backend/.env.example`
+- `frontend/.env.example`
+
+**Changes:**
+
+- Make CORS origins configurable via env var
+- Add health check endpoint
+- Create `.env.example` files
+
+**Why grouped:** All configuration for production
+
+---
+
+#### PR 6.2: `infra/docker-setup`
+
+**Base:** PR 6.1
+**Tasks:** 62
+**Files:**
+
+- `backend/Dockerfile` (new)
+- `docker-compose.yml` (new)
+- `.dockerignore` (new)
+
+**Changes:**
+
+- Create Dockerfile for backend
+- Create docker-compose for local dev
+
+**Why stacked:** Uses env var patterns from PR 6.1
+
+---
+
+#### PR 6.3: `infra/postgresql-migration`
+
+**Base:** PR 6.2
+**Tasks:** 63
+**Files:**
+
+- `backend/app/db.py`
+- `backend/pyproject.toml`
+
+**Changes:**
+
+- Add asyncpg dependency
+- Support DATABASE_URL for PostgreSQL
+- Keep SQLite fallback for development
+
+**Why stacked:** Docker setup helps test PostgreSQL locally
+
+---
+
+#### PR 6.4: `infra/ci-cd-pipeline`
+
+**Base:** PR 6.3
+**Tasks:** Part of 62
+**Files:**
+
+- `.github/workflows/deploy.yml` (new)
+- `.github/workflows/test.yml` (new)
+
+**Changes:**
+
+- Add GitHub Actions for testing
+- Add deployment workflow
+
+**Why stacked:** Needs Docker and PostgreSQL setup from previous PRs
+
+---
+
+### PR Merge Order Summary
+
+```
+Sprint 1 (can run in parallel where noted):
+main ← PR 1.3 (backend cleanup - independent)
+main ← PR 1.1 ← PR 1.2 (auth forms stack)
+main ← PR 1.4 ← PR 1.5 (conversation list stack)
+
+Sprint 2:
+main ← PR 2.1 ← PR 2.2 ← PR 2.3 ← PR 2.4 (security & history stack)
+
+Sprint 3 (can run in parallel where noted):
+main ← PR 3.3 (logout - independent)
+main ← PR 3.1 ← PR 3.2 ← PR 3.4 (CRUD stack)
+
+Sprint 4 (can run in parallel where noted):
+main ← PR 4.2 (error handling - independent)
+main ← PR 4.4 (tests - independent)
+main ← PR 4.1 ← PR 4.3 (model & title stack)
+
+Sprint 5 (can run in parallel where noted):
+main ← PR 5.4 (chat UX - independent)
+main ← PR 5.1 ← PR 5.2 ← PR 5.3 (UI polish stack)
+
+Sprint 6:
+main ← PR 6.1 ← PR 6.2 ← PR 6.3 ← PR 6.4 (deployment stack)
+```
+
+---
+
 ## 📊 Progress Tracking
 
 ### Overall Progress
 
 - **Completed:** 8 tasks
 - **In Progress:** 0 tasks
-- **Remaining:** 56 tasks
-- **Completion:** 12.5% (8/64)
+- **Remaining:** 60 tasks
+- **Completion:** 11.8% (8/68)
 
 ### By Priority
 
 - **🔴 Critical:** 0/12 tasks complete (0%)
 - **🟠 High Priority:** 0/11 tasks complete (0%)
 - **🟡 Medium Priority:** 0/13 tasks complete (0%)
-- **🟢 Low Priority:** 0/20 tasks complete (0%)
+- **🟢 Low Priority:** 0/24 tasks complete (0%) - includes deployment tasks
 
 ---
 
