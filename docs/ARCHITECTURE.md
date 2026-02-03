@@ -326,12 +326,15 @@ AI Nexus uses a dual-database approach:
 
 ### Known Security Considerations
 
-| Issue                   | Status  | Impact | Mitigation Plan               |
-| ----------------------- | ------- | ------ | ----------------------------- |
-| Chat endpoint ownership | TODO    | High   | Verify user owns conversation |
-| Rate limiting           | TODO    | Medium | Add slowapi middleware        |
-| Input validation        | Partial | Low    | Add max_length constraints    |
-| CORS production config  | TODO    | Medium | Environment-based origins     |
+| Issue                   | Status  | Impact | Task # | Mitigation Plan               |
+| ----------------------- | ------- | ------ | ------ | ----------------------------- |
+| Chat endpoint ownership | TODO    | High   | #13    | Verify user owns conversation |
+| Rate limiting           | TODO    | Medium | #37    | Add slowapi middleware        |
+| Input validation        | Partial | Low    | #39    | Add max_length constraints    |
+| CORS production config  | TODO    | Medium | #38    | Environment-based origins     |
+| Session timeout (1h)    | TODO    | Low    | #61    | Extend to 7 days or refresh   |
+
+⚠️ **Critical:** Task #13 (conversation ownership) should be prioritized before production deployment.
 
 ## Streaming Architecture
 
@@ -513,10 +516,14 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 ### Current Limitations
 
-- SQLite single-writer constraint
-- In-memory message state (no persistence on refresh)
-- No pagination for conversations list
-- No caching layer
+| Limitation                          | Impact     | Task # | Notes                          |
+| ----------------------------------- | ---------- | ------ | ------------------------------ |
+| SQLite single-writer constraint     | Medium     | #63    | Migrate to PostgreSQL for prod |
+| In-memory message state             | High       | #28    | Messages lost on page refresh  |
+| No pagination for conversations     | Low        | -      | Not critical until many convos |
+| No caching layer                    | Low        | -      | Consider Redis for production  |
+| Conversation updated_at not updated | Low        | #34    | Sidebar sort will be incorrect |
+| Duplicate code in main.py           | Code smell | #12    | Lines 352-374 duplicated       |
 
 ### Recommended Optimizations
 

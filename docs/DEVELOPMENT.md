@@ -500,11 +500,26 @@ Check that:
 2. Frontend is running on port 3001
 3. CORS middleware is configured in `main.py`
 
+**Note:** CORS is currently hardcoded to `localhost:3001`. For production, this needs to be made configurable (TODO Task #38).
+
 ### Auth cookie not working
 
 1. Check `AUTH_SECRET` is set
 2. Ensure cookies are enabled in browser
 3. Check `ENV` variable (dev vs prod)
+4. Session expires after 1 hour (TODO Task #61 to extend)
+
+### Messages disappear on page refresh
+
+This is a known limitation (TODO Task #28). Currently, messages are stored only in React state and Agno's database. The frontend doesn't fetch message history on page load yet.
+
+### Login/signup forms don't show errors
+
+Known UX issues (TODO Tasks #9, #10). Currently, login failures throw errors but don't display them in the UI.
+
+### Chat endpoint security warning
+
+⚠️ The `/api/chat` endpoint currently doesn't verify that the user owns the conversation they're chatting in (TODO Task #13). This is a security issue that should be addressed before production.
 
 ## Contributing
 
@@ -515,6 +530,30 @@ Check that:
 5. Commit with conventional commit message
 6. Create pull request
 
+## Best Practices Learned
+
+### Database Patterns
+
+1. **Dual Database Architecture**: The app uses a single SQLite file (`agno.db`) shared between your SQLAlchemy models and Agno's internal tables. Use `conversation_id` as `session_id` in Agno to link them.
+
+2. **Foreign Keys**: Always define foreign key relationships in models (added in commit 69f2823).
+
+3. **Datetime Handling**: Use `datetime.utcnow()` or `datetime.now(timezone.utc)` instead of `datetime.now()` for consistency (TODO Task #36).
+
+### Frontend Patterns
+
+1. **Authenticated Fetch**: Always use `useAuthedFetch()` hook for protected endpoints. It handles credentials and 401 redirects automatically.
+
+2. **Streaming**: The `useChat()` hook uses `TextDecoderStream` + async generators for parsing SSE events.
+
+3. **Conversation ID from URL**: Use `params.conversationId` from the dynamic route rather than local state to ensure shareable URLs work correctly.
+
+### Security Patterns
+
+1. **JWT in httpOnly Cookies**: Tokens are never accessible to JavaScript, reducing XSS risk.
+
+2. **Ownership Verification**: Always verify resource ownership before operations (see TODO Task #13 for incomplete implementation).
+
 ## Resources
 
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
@@ -524,3 +563,7 @@ Check that:
 - [Agno Framework](https://docs.agno.dev/)
 - [Tailwind CSS](https://tailwindcss.com/docs)
 - [Radix UI](https://www.radix-ui.com/docs/primitives)
+
+---
+
+_Last updated: 2026-02-03_

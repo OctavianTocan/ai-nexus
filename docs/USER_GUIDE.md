@@ -25,7 +25,12 @@ Welcome to AI Nexus, your personal "second brain" chatbot powered by advanced AI
 
 ### Logging Out
 
-Currently, you can log out by clearing your browser cookies or waiting for the session to expire (1 hour).
+Currently, there is no logout button in the UI. You can log out by:
+
+1. Clearing your browser cookies for the site
+2. Waiting for the session to expire (1 hour)
+
+A logout feature is planned for a future update (Sprint 3).
 
 ---
 
@@ -218,15 +223,47 @@ If you encounter issues:
 
 ---
 
+## Current Limitations
+
+Please be aware of these known limitations:
+
+| Limitation                 | Impact                                | Workaround                    |
+| -------------------------- | ------------------------------------- | ----------------------------- |
+| Messages lost on refresh   | Chat history disappears if you reload | Keep the tab open             |
+| No logout button           | Must clear cookies to log out         | Clear site data or wait 1 hr  |
+| No error messages on login | Failed logins don't explain why       | Double-check your credentials |
+| Chat layout is narrow      | Text area may feel cramped            | None currently                |
+| No conversation list       | Can't see past conversations          | Bookmark conversation URLs    |
+
+These are being addressed in upcoming sprints. See [TODO.md](../TODO.md) for details.
+
+---
+
 ## Coming Soon
 
-Features planned for future releases:
+Features planned for upcoming sprints:
 
-- **Conversation Sidebar** - Browse and manage your past conversations
-- **Message History** - Persist messages across page refreshes
-- **Rename Conversations** - Give your chats meaningful titles
-- **Delete Conversations** - Remove unwanted conversations
-- **Improved Error Handling** - Better feedback for login/signup errors
-- **Auto-generated Titles** - AI-generated conversation titles based on content
-- **Dark Mode Toggle** - Switch between light and dark themes
-- **Mobile Responsive Design** - Better experience on phones and tablets
+### Sprint 1 (Authentication & Navigation)
+
+- **Login Error Messages** - See why login failed
+- **Signup Feedback** - Know if registration succeeded
+- **Conversation Sidebar** - Browse past conversations
+- **Wider Chat Layout** - More readable messages
+
+### Sprint 2 (Security & History)
+
+- **Message Persistence** - Keep messages across refreshes
+- **Security Improvements** - Better conversation protection
+
+### Sprint 3 (Full CRUD)
+
+- **Logout Button** - Proper sign-out functionality
+- **Rename Conversations** - Give chats meaningful titles
+- **Delete Conversations** - Remove unwanted chats
+
+### Future
+
+- **Auto-generated Titles** - AI creates titles from content
+- **Dark Mode Toggle** - Switch themes
+- **Mobile Design** - Better phone/tablet experience
+- **Conversation Search** - Find past chats

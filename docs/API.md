@@ -2,6 +2,22 @@
 
 Complete API documentation for the AI Nexus backend service.
 
+## Implementation Status
+
+| Endpoint                          | Method | Status  |
+| --------------------------------- | ------ | ------- |
+| `/auth/jwt/login`                 | POST   | ✅      |
+| `/auth/register`                  | POST   | ✅      |
+| `/auth/jwt/logout`                | POST   | ❌ TODO |
+| `/api/v1/conversations`           | POST   | ✅      |
+| `/api/v1/conversations`           | GET    | ❌ TODO |
+| `/api/v1/conversations/{id}`      | GET    | ❌ TODO |
+| `/api/v1/conversations/{id}`      | PUT    | ❌ TODO |
+| `/api/v1/conversations/{id}`      | DELETE | ❌ TODO |
+| `/api/v1/conversations/{id}/msgs` | GET    | ❌ TODO |
+| `/api/chat`                       | POST   | ✅      |
+| `/health`                         | GET    | ❌ TODO |
+
 ## Base URL
 
 - **Development:** `http://localhost:8000`
@@ -420,7 +436,22 @@ All errors follow this format:
 
 ## Rate Limiting
 
-Currently not implemented. Planned for future release.
+⚠️ **Not implemented.** The API currently has no rate limiting, allowing unlimited requests. This is tracked in TODO.md Task #37.
+
+---
+
+## Security Considerations
+
+⚠️ **Known Issues:**
+
+| Issue                                             | Risk   | Mitigation                          |
+| ------------------------------------------------- | ------ | ----------------------------------- |
+| `/api/chat` doesn't verify conversation ownership | HIGH   | Users could access others' sessions |
+| No rate limiting                                  | MEDIUM | API abuse possible                  |
+| CORS hardcoded to localhost:3001                  | MEDIUM | Breaks production deployment        |
+| No input length validation on chat messages       | LOW    | Potential for very long messages    |
+
+These issues are tracked in TODO.md and planned for Sprint 2 (security) and Sprint 4 (polish).
 
 ---
 
