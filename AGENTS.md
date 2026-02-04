@@ -214,9 +214,11 @@ const response = await fetcher("/api/chat", { method: "POST", ... });
 ## Notion MCP
 
 When using the Notion MCP, the root page for all ai-nexus project documentation is:
-https://www.notion.so/infimagames/ai-nexus-2fd3c065308b8087a18ff37830dc4572
+2fd3c065-308b-8087-a18f-f37830dc4572
 
 For pages created there (thoughts, documentation, or other info), use a clean folder structure: group related pages under a few top-level pages when it makes sense, and avoid a flat list of many sibling pages at the root.
+
+When asked about the project's TODOs, whether as research or because they need updates, refer to https://www.notion.so/infimagames/TODO-2fd3c065308b811f8786d93d117e3a33
 
 ## Resources
 
