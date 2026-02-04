@@ -7,7 +7,7 @@ import { API_ENDPOINTS } from "@/lib/api";
  * @returns A function that creates a new conversation.
  * @returns The conversation ID.
  */
-export function useCreateConversation() {
+export default function useCreateConversation() {
     const fetcher = useAuthedFetch();
 
     // Create a new conversation.
