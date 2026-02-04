@@ -2,9 +2,11 @@
 # TODO: Implement these functions to manage conversations
 
 from datetime import datetime
+from math import log
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy import select, and_
 import uuid
+from app.db import User
 from typing import Optional
 
 from app.models import Conversation
@@ -34,6 +36,24 @@ async def create_conversation_service(
     await session.commit()
     await session.refresh(new_conversation)
     return new_conversation
+
+
+async def get_conversation_service(
+    user_id: uuid.UUID, session: AsyncSession, conversation_id: uuid.UUID
+) -> Optional[Conversation]:
+    """
+    Retrieve a single conversation by ID, ensuring it belongs to the user.
+
+    This is important for security - users should only access their own conversations.
+
+    Returns:
+        Conversation object if found, None otherwise
+    """
+
+    # This gives us the actual user with the user id...maybe?
+    usrSelect = select(User).where(User.id == user_id)
+    print("usrSelect", usrSelect)
+    print("outcome", await session.execute(usrSelect))
 
 
 # TODO: Implement function to get a single conversation by ID

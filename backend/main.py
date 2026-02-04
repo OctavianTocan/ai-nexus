@@ -16,7 +16,7 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy import select
 
-from app.crud.conversation import create_conversation_service
+from app.crud.conversation import create_conversation_service, get_conversation_service
 from app.db import User, create_db_and_tables, get_async_session
 from app.schemas import (
     ChatRequest,
@@ -156,6 +156,12 @@ def chat(
     #     # New conversation - create it first
     #     db_conversation = await create_conversation_service(user.id, session, ConversationCreate())
     #     agno_session_id = str(db_conversation.id)  # Use your ID as Agno session
+
+    # Verify user owns this conversation (get from your DB)
+    # If they don't, we should show them a simple error message, and a button to return to the home page.
+    # TODO: What I'm wondering is whether we should have an endpoint to verify ownership of a conversation, or that's simply part of a CRUD operation? I'm not really sure how to do this.
+
+    # conversation = await get_conversation_service(user.id, request.conversation_id)
 
     # Create to Agno agent.
     agno_agent = Agent(
