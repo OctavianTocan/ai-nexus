@@ -211,6 +211,13 @@ const response = await fetcher("/api/chat", { method: "POST", ... });
 | Rate limiting           | MEDIUM | Add slowapi middleware (TODO)        |
 | CORS production config  | MEDIUM | Environment-based origins (TODO)     |
 
+## Notion MCP
+
+When using the Notion MCP, the root page for all ai-nexus project documentation is:
+https://www.notion.so/infimagames/ai-nexus-2fd3c065308b8087a18ff37830dc4572
+
+For pages created there (thoughts, documentation, or other info), use a clean folder structure: group related pages under a few top-level pages when it makes sense, and avoid a flat list of many sibling pages at the root.
+
 ## Resources
 
 - [API Reference](docs/API.md)
