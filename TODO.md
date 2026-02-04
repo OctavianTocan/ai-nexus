@@ -391,6 +391,13 @@ class ConversationUpdate(BaseModel):
 **Current Issue:** "Thinking..." text is basic
 **Action:** Use animated dots or skeleton loader for better visual feedback
 
+#### 55b. Show Thinking Status Above Chat Composer
+
+**File:** `frontend/components/chat/chat.tsx`, `frontend/components/ai-elements/`
+**Current Issue:** No visual feedback near the input area while AI is processing
+**Action:** Display a "Working..." or "Thinking..." indicator positioned above the chat composer input field (similar to ChatGPT's pattern shown in the screenshot). This provides immediate feedback near where the user is focused.
+**Reference:** See ChatGPT's UI pattern where status text appears directly above the message input area
+
 #### 56. Add Dark Mode Toggle
 
 **File:** `frontend/app/layout.tsx` or new theme component
