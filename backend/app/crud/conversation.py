@@ -50,10 +50,15 @@ async def get_conversation_service(
         Conversation object if found, None otherwise
     """
 
-    # This gives us the actual user with the user id...maybe?
-    usrSelect = select(User).where(User.id == user_id)
-    print("usrSelect", usrSelect)
-    print("outcome", await session.execute(usrSelect))
+    # Select the conversation by ID and user ID.
+    conversationSelect = (
+        select(Conversation)
+        .where(Conversation.id == conversation_id)
+        .where(Conversation.user_id == user_id)
+    )
+    # Execute the select statement and get the conversation.
+    conversationResult = await session.execute(conversationSelect)
+    return conversationResult.scalar_one_or_none()
 
 
 # TODO: Implement function to get a single conversation by ID

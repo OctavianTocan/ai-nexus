@@ -96,7 +96,8 @@ async def get_conversation(
     Returns:
         ConversationResponse: The response containing the conversation details.
     """
-    conversation = get_conversation_service(user.id, session, conversation_id)
+    conversation = await get_conversation_service(user.id, session, conversation_id)
+    return conversation
 
 
 @app.post("/api/v1/conversations")
