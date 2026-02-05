@@ -1,6 +1,6 @@
 import Chat from "@/components/chat/chat";
 import getConversation from "@/hooks/get-conversation";
-import { API_ENDPOINTS } from "@/lib/api";
+import { API_BASE_URL, API_ENDPOINTS } from "@/lib/api";
 import type { Conversation } from "@/lib/types";
 import { cookies } from "next/headers";
 
@@ -23,7 +23,7 @@ export default async function ConversationPage({ params }: ConversationPageProps
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get('session_token');
 
-    const response = await fetch(API_ENDPOINTS.conversations.get(conversationId), {
+    const response = await fetch(API_BASE_URL + API_ENDPOINTS.conversations.get(conversationId), {
         method: "GET",
         "headers": {
             "content-type": "application/json",

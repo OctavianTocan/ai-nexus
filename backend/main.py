@@ -2,6 +2,7 @@ import json
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from datetime import datetime
+import uuid
 
 from agno.agent import Agent
 from agno.db.sqlite import SqliteDb
@@ -78,6 +79,24 @@ app.include_router(
 
 # Create the Agno database.
 agno_db = SqliteDb(db_file="agno.db")
+
+
+@app.get("/api/v1/conversations/{conversation_id}")
+async def get_conversation(
+    conversation_id: uuid.UUID,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+) -> ConversationResponse:
+    """
+    Get a conversation by ID.
+    Args:
+        conversation_id: The ID of the conversation to get.
+        user: The current active user.
+        session: The database session.
+    Returns:
+        ConversationResponse: The response containing the conversation details.
+    """
+    conversation = get_conversation_service(user.id, session, conversation_id)
 
 
 @app.post("/api/v1/conversations")
