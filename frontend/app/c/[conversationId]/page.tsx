@@ -30,11 +30,11 @@ export default async function ConversationPage({ params }: ConversationPageProps
             "Authorization": `Bearer ${sessionToken?.value}`
         }
     });
-    console.log("response", response);
-    const jsonResponse = await response.json();
-    console.log("jsonResponse", jsonResponse);
-    const conversation = jsonResponse as Conversation;
-    console.log("conversation", conversation);
+    // console.log("response", response);
+    // const jsonResponse = await response.json();
+    // console.log("jsonResponse", jsonResponse);
+    // const conversation = jsonResponse as Conversation;
+    // console.log("conversation", conversation);
 
     // Render the chat component.
     return <div>

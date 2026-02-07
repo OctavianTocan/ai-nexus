@@ -374,27 +374,3 @@ def chat(
     #         "messages": agno_messages,  # ← Prefer Agno's (actual source)
     #         "your_db_messages": your_messages  # ← Optional: backup/debug
     #     }
-
-    def event_stream():
-        """
-        Stream!
-        """
-        # Iterate Agno's streaming events
-        for ev in agno_agent.run(request.question, stream=True):
-            chunk = getattr(ev, "content", None)
-            if chunk:
-                # Send a "delta" payload to the client
-                payload = {"type": "delta", "content": chunk}
-                yield f"data: {json.dumps(payload)}\n\n"
-
-        # Signal completion
-        yield "data: [DONE]\n\n"
-
-    return StreamingResponse(
-        event_stream(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",
-        },
-    )

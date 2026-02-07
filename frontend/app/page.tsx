@@ -3,6 +3,7 @@
 
 import useCreateConversation from "@/hooks/use-create-conversation";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 /**
  * Page is the landing page of the application.
@@ -25,7 +26,7 @@ export default function Page() {
   };
 
   // Render the page.
-  return <div>
-    <button onClick={handleNewConversation}>New Conversation</button>
+  return <div className="flex justify-center h-screen items-center">
+    <Button className="w-50 mx-auto cursor-pointer h-10" onClick={handleNewConversation}>New Conversation</Button>
   </div>;
 }
