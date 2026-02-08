@@ -1,8 +1,11 @@
 # CRUD operations for Conversation model
 # TODO: Implement these functions to manage conversations
 
+from backend.app.models import Message
+
 from datetime import datetime
 from math import log
+from agno.agent import Message
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy import select, and_
 import uuid
@@ -51,6 +54,7 @@ async def get_conversation_service(
     """
 
     # Select the conversation by ID and user ID.
+    # This already ensures that the conversation belongs to the user, because we're making sure that the user_id is the same as the user_id of the conversation.
     conversationSelect = (
         select(Conversation)
         .where(Conversation.id == conversation_id)
@@ -59,6 +63,30 @@ async def get_conversation_service(
     # Execute the select statement and get the conversation.
     conversationResult = await session.execute(conversationSelect)
     return conversationResult.scalar_one_or_none()
+
+
+async def get_conversation_messages_service(
+    user_id: uuid.UUID, session: AsyncSession, conversation_id: uuid.UUID
+) -> list[Message]:
+    """
+    Get the messages for a conversation.
+    Args:
+        user_id: The ID of the user.
+        session: The database session.
+        conversation_id: The ID of the conversation.
+    Returns:
+        list[Message]: The list of messages for the conversation.
+    """
+
+    # Get the conversation.
+    conversation = await get_conversation_service(user_id, session, conversation_id)
+    # If the conversation is not found, we return None.
+    if not conversation:
+        return None
+
+    # Return the messages for the conversation.
+    # TODO: Right now this won't return anything, because we're not adding messages to our own database, just the Agno database.
+    return list[Message](conversation.messages)
 
 
 # TODO: Implement function to get a single conversation by ID

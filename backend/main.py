@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 import uuid
 
-from agno.agent import Agent
+from agno.agent import Agent, Message
 from agno.db.sqlite import SqliteDb
 from agno.models.google import Gemini
 from agno.os import AgentOS
@@ -17,7 +17,11 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy import select
 
-from app.crud.conversation import create_conversation_service, get_conversation_service
+from app.crud.conversation import (
+    create_conversation_service,
+    get_conversation_messages_service,
+    get_conversation_service,
+)
 from app.db import User, create_db_and_tables, get_async_session
 from app.schemas import (
     ChatRequest,
@@ -79,6 +83,29 @@ app.include_router(
 
 # Create the Agno database.
 agno_db = SqliteDb(db_file="agno.db")
+
+
+@app.get("/api/v1/conversations/{conversation_id}/messages")
+async def get_conversation_messages(
+    conversation_id: uuid.UUID,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+) -> list[Message]:
+    """
+    Get the messages for a conversation.
+    Args:
+        conversation_id: The ID of the conversation to get the messages for.
+        user: The current active user.
+        session: The database session.
+    Returns:
+        list[Message]: The list of messages for the conversation.
+    """
+
+    # Get the messages for the conversation.
+    messages = await get_conversation_messages_service(
+        user.id, session, conversation_id
+    )
+    return messages
 
 
 @app.get("/api/v1/conversations/{conversation_id}")
