@@ -2,6 +2,7 @@ import Chat from "@/components/chat/chat";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/api";
 import type { Conversation } from "@/lib/types";
 import { cookies } from "next/headers";
+import { unauthorized } from "next/navigation";
 
 /**
  * ConversationPage displays the chat UI for a given conversation.
@@ -27,15 +28,16 @@ export default async function ConversationPage({ params }: ConversationPageProps
         method: "GET",
         "headers": {
             "content-type": "application/json",
-            "Authorization": `Bearer ${sessionToken?.value}`
+            // We use Cookie Transport for authentication, so we need to include the session token in the cookies.
+            "Cookie": `session_token=${sessionToken?.value}`
         }
     });
-    // console.log("response", response);
-    // const jsonResponse = await response.json();
-    // console.log("jsonResponse", jsonResponse);
-    // const conversation = jsonResponse as Conversation;
-    // console.log("conversation", conversation);
+    console.log("response", response);
 
+    // NOTE: This here uses Next.js experimental authInterrupts feature.
+    if (response.ok === false || response.status !== 200) {
+        unauthorized();
+    }
     // Render the chat component.
     return <div>
         <h1 className="w-[50%] mx-auto">Conversation {conversationId}</h1>
