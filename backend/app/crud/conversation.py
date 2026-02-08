@@ -3,12 +3,9 @@
 
 
 from datetime import datetime
-from math import log
-from agno.agent import Message
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy import select, and_
+from sqlalchemy import select
 import uuid
-from app.db import User
 from typing import Optional
 
 from app.models import Conversation
@@ -62,6 +59,7 @@ async def get_conversation_service(
     # Execute the select statement and get the conversation.
     conversationResult = await session.execute(conversationSelect)
     return conversationResult.scalar_one_or_none()
+
 
 # TODO: Implement function to get a single conversation by ID
 # async def get_conversation(

@@ -1,6 +1,7 @@
 import json
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import List, Optional
 import uuid
 
 from agno.agent import Agent, Message
@@ -8,14 +9,13 @@ from agno.db.sqlite import SqliteDb
 from agno.models.google import Gemini
 from agno.tools.mcp import MCPTools
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio.session import AsyncSession
 
 from app.crud.conversation import (
     create_conversation_service,
-    get_conversation_messages_service,
     get_conversation_service,
 )
 from app.db import User, create_db_and_tables, get_async_session
@@ -85,19 +85,26 @@ agno_db = SqliteDb(db_file="agno.db")
 async def get_conversation_messages(
     conversation_id: uuid.UUID,
     user: User = Depends(current_active_user),
-) -> list[Message]:
+    session: AsyncSession = Depends(get_async_session),
+) -> Optional[List[Message]]:
     """
     Get the messages for a conversation.
     Args:
         conversation_id: The ID of the conversation to get the messages for.
         user: The current active user.
     Returns:
-        list[Message]: The list of messages for the conversation.
+        Optional[List[Message]]: The list of messages for the conversation, or None if the conversation is not found.
     """
 
-    # Get the messages for the conversation.
-    messages = await get_conversation_messages_service(user.id, conversation_id)
-    return messages
+    conversation = await get_conversation_service(user.id, session, conversation_id)
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # We instantiate the agent without a session_id, because we're going to get the messages from the Agno database.
+    agent = Agent(db=agno_db)
+    # Get the chat history for the conversation.
+    chat_history = agent.get_chat_history(session_id=str(conversation_id))
+    return chat_history
 
 
 @app.get("/api/v1/conversations/{conversation_id}")
