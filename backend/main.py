@@ -1,21 +1,17 @@
 import json
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from datetime import datetime
 import uuid
 
 from agno.agent import Agent, Message
 from agno.db.sqlite import SqliteDb
 from agno.models.google import Gemini
-from agno.os import AgentOS
 from agno.tools.mcp import MCPTools
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy import select
 
 from app.crud.conversation import (
     create_conversation_service,
@@ -89,22 +85,18 @@ agno_db = SqliteDb(db_file="agno.db")
 async def get_conversation_messages(
     conversation_id: uuid.UUID,
     user: User = Depends(current_active_user),
-    session: AsyncSession = Depends(get_async_session),
 ) -> list[Message]:
     """
     Get the messages for a conversation.
     Args:
         conversation_id: The ID of the conversation to get the messages for.
         user: The current active user.
-        session: The database session.
     Returns:
         list[Message]: The list of messages for the conversation.
     """
 
     # Get the messages for the conversation.
-    messages = await get_conversation_messages_service(
-        user.id, session, conversation_id
-    )
+    messages = await get_conversation_messages_service(user.id, conversation_id)
     return messages
 
 
