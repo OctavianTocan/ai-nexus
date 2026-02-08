@@ -32,7 +32,6 @@ export default async function ConversationPage({ params }: ConversationPageProps
             "Cookie": `session_token=${sessionToken?.value}`
         }
     });
-    console.log("response", response);
 
     // NOTE: This here uses Next.js experimental authInterrupts feature.
     if (response.ok === false || response.status !== 200) {
