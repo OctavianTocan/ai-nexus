@@ -26,7 +26,12 @@ export const API_ENDPOINTS = {
          * @returns `/api/v1/conversations/${id}`
          */
         get: (id: string) => `/api/v1/conversations/${id}`,
-
+        /**
+         * Get the messages for a conversation by ID.
+         * @param id - Conversation ID
+         * @returns `/api/v1/conversations/${id}/messages`
+         */
+        getMessages: (id: string) => `/api/v1/conversations/${id}/messages`,
         /**
          * Create a conversation.
          * @returns `/api/v1/conversations`

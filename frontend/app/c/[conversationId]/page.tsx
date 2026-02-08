@@ -2,7 +2,7 @@ import Chat from "@/components/chat/chat";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/api";
 import type { Conversation } from "@/lib/types";
 import { cookies } from "next/headers";
-import { unauthorized } from "next/navigation";
+import { notFound, unauthorized } from "next/navigation";
 
 /**
  * ConversationPage displays the chat UI for a given conversation.
@@ -16,7 +16,7 @@ interface ConversationPageProps {
 
 export default async function ConversationPage({ params }: ConversationPageProps) {
 
-
+    //TODO: We need to make sure that we're not trying to fetch messages when we've just created a conversation.
     // TODO: All of this needs some cleanup and error handling.
     // Get the conversation ID from the params.
     const { conversationId } = await params;
@@ -24,7 +24,8 @@ export default async function ConversationPage({ params }: ConversationPageProps
     const sessionToken = cookieStore.get('session_token');
 
     // TODO: Need a server-side utility function to do authed fetching.
-    const response = await fetch(API_BASE_URL + API_ENDPOINTS.conversations.get(conversationId), {
+    // We just try to get the messages, because the conversation auth is handled either way.
+    const response = await fetch(API_BASE_URL + API_ENDPOINTS.conversations.getMessages(conversationId), {
         method: "GET",
         "headers": {
             "content-type": "application/json",
@@ -34,12 +35,19 @@ export default async function ConversationPage({ params }: ConversationPageProps
     });
 
     // NOTE: This here uses Next.js experimental authInterrupts feature.
-    if (response.ok === false || response.status !== 200) {
+    if (response.status === 401) {
         unauthorized();
     }
+    // If the conversation is not found, we should show a 404 page.
+    if (response.status === 404) {
+        notFound();
+    }
+
+    const messages = await response.json();
+
     // Render the chat component.
     return <div>
         <h1 className="w-[50%] mx-auto">Conversation {conversationId}</h1>
-        <Chat conversationId={conversationId} />
+        <Chat conversationId={conversationId} messages={messages} />
     </div>;
 }

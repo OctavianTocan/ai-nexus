@@ -100,12 +100,16 @@ async def get_conversation_messages(
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
-    # We instantiate the agent without a session_id, because we're going to get the messages from the Agno database.
-    agent = Agent(db=agno_db)
-    # Get the chat history for the conversation.
-    chat_history = agent.get_chat_history(session_id=str(conversation_id))
-    print(chat_history)
-    return chat_history
+    # Need the try/except so that we do not throw errors on new conversations.
+    try:
+        # We instantiate the agent without a session_id, because we're going to get the messages from the Agno database.
+        agent = Agent(db=agno_db)
+        # Get the chat history for the conversation.
+        chat_history = agent.get_chat_history(session_id=str(conversation_id))
+        print(chat_history)
+        return chat_history
+    except:
+        return []
 
 
 @app.get("/api/v1/conversations/{conversation_id}")

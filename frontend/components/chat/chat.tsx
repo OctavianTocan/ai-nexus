@@ -24,6 +24,8 @@ import { useChat } from "@/hooks/use-chat";
 type ChatProps = {
   // The ID of the conversation to link messages to. (When not provided, we create a new conversation.)
   conversationId: string;
+  // TODO: Need to add a type for the messages, and then load it.
+  messages: string;
 };
 
 // Scroll to bottom of the chat when the chat history changes.
@@ -39,7 +41,7 @@ const ChatScrollAnchor = ({ track }: { track: number }) => {
 };
 
 // TODO: We need to use the conversationId to get the messages for the conversation from the backend database.
-const Chat = ({ conversationId }: ChatProps) => {
+const Chat = ({ conversationId, messages }: ChatProps) => {
 
   // Chat Hook.
   const { streamMessage } = useChat();
@@ -107,6 +109,7 @@ const Chat = ({ conversationId }: ChatProps) => {
   return (
     <>
       <div className="fixed inset-0 overflow-hidden">
+        <p>{JSON.stringify(messages)}</p>
         <div className="w-[30%] mx-auto h-screen flex flex-col overflow-hidden">
           <Conversation className="flex-1 overflow-y-auto" resize="smooth">
             <ConversationContent>
