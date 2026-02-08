@@ -104,6 +104,7 @@ async def get_conversation_messages(
     agent = Agent(db=agno_db)
     # Get the chat history for the conversation.
     chat_history = agent.get_chat_history(session_id=str(conversation_id))
+    print(chat_history)
     return chat_history
 
 
