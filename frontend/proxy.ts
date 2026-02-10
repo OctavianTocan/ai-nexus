@@ -1,3 +1,6 @@
+// proxy.ts
+// The point of this file is to proxy requests to the backend.
+
 import { NextRequest, NextResponse } from "next/server";
 
 const protectedRoutes = [
@@ -34,7 +37,7 @@ export function proxy(request: NextRequest) {
     if (isProtectedRoute(path) && !sessionToken) {
         return NextResponse.redirect(new URL("/login", request.url));
     }
-    
+
     // Allow the request to continue
     return NextResponse.next();
 }
