@@ -2,11 +2,13 @@
 # TODO: Implement these functions to manage conversations
 
 
-from datetime import datetime
-from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy import select
 import uuid
-from typing import Optional
+from datetime import datetime
+from typing import List, Optional
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio.session import AsyncSession
+from sqlalchemy.sql.naming import conv
 
 from app.models import Conversation
 from app.schemas import ConversationCreate
@@ -59,6 +61,26 @@ async def get_conversation_service(
     # Execute the select statement and get the conversation.
     conversationResult = await session.execute(conversationSelect)
     return conversationResult.scalar_one_or_none()
+
+
+async def get_conversations_for_user_service(
+    user_id: uuid.UUID, session: AsyncSession
+) -> List[Conversation]:
+    """
+    Retrieve all conversations for a specific user.
+
+    Returns:
+        List of Conversation objects, ordered by updated_at DESC (most recent first)
+    """
+
+    # Get all conversations for the user, ordered by most recent first.
+    conversationsSelect = (
+        select(Conversation)
+        .where(Conversation.user_id == user_id)
+        .order_by(Conversation.updated_at.desc())
+    )
+    conversationsResult = await session.execute(conversationsSelect)
+    return list(conversationsResult.scalars().all())
 
 
 # TODO: Implement function to get a single conversation by ID

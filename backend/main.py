@@ -1,8 +1,8 @@
 import json
+import uuid
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import List, Optional
-import uuid
 
 from agno.agent import Agent, Message
 from agno.db.sqlite import SqliteDb
@@ -17,8 +17,10 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from app.crud.conversation import (
     create_conversation_service,
     get_conversation_service,
+    get_conversations_for_user_service,
 )
 from app.db import User, create_db_and_tables, get_async_session
+from app.models import Conversation
 from app.schemas import (
     ChatRequest,
     ConversationCreate,
@@ -28,8 +30,6 @@ from app.schemas import (
     UserUpdate,
 )
 from app.users import auth_backend, current_active_user, fastapi_users
-from app.models import Conversation
-
 
 # Load the environment variables.
 load_dotenv()
@@ -117,7 +117,7 @@ async def get_conversation(
     conversation_id: uuid.UUID,
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
-) -> ConversationResponse:
+) -> Optional[ConversationResponse]:
     """
     Get a conversation by ID.
     Args:
@@ -127,8 +127,48 @@ async def get_conversation(
     Returns:
         ConversationResponse: The response containing the conversation details.
     """
-    conversation = await get_conversation_service(user.id, session, conversation_id)
-    return conversation
+    conversation: Optional[Conversation] = await get_conversation_service(
+        user.id, session, conversation_id
+    )
+    if conversation:
+        return ConversationResponse(
+            title=conversation.title,
+            id=conversation.id,
+            user_id=conversation.user_id,
+            created_at=conversation.created_at,
+            updated_at=conversation.updated_at,
+        )
+
+    return None
+
+
+@app.get("/api/v1/conversations")
+async def list_conversations(
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+) -> List[ConversationResponse]:
+    """
+    List all conversations for the current user.
+    Args:
+        user: The current active user.
+        session: The database session.
+    Returns:
+        List[ConversationResponse]: The list of conversations for the current user.
+    """
+
+    conversations: List[Conversation] = await get_conversations_for_user_service(
+        user.id, session
+    )
+    return [
+        ConversationResponse(
+            title=conversation.title,
+            id=conversation.id,
+            user_id=conversation.user_id,
+            created_at=conversation.created_at,
+            updated_at=conversation.updated_at,
+        )
+        for conversation in conversations
+    ]
 
 
 @app.post("/api/v1/conversations")
@@ -212,7 +252,9 @@ def chat(
     # If they don't, we should show them a simple error message, and a button to return to the home page.
     # TODO: What I'm wondering is whether we should have an endpoint to verify ownership of a conversation, or that's simply part of a CRUD operation? I'm not really sure how to do this.
 
-    # conversation = await get_conversation_service(user.id, request.conversation_id)
+    # TODO: Need to figure out how exactly we're going to check whether a user owns a conversation. It feels like that should be a utility of some sort, instead of having to call get_conversation_service -- It's odd.
+    # if request.conversation_id
+    # existing_conversation: Optional[Conversation] = await get_conversation_service(user.id, session, conversation_id)
 
     # Create to Agno agent.
     agno_agent = Agent(
