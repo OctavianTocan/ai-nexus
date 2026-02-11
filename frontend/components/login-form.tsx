@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 export function LoginForm({
   className,
@@ -25,6 +26,8 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  // Error message.
+  const [errorMessage, setErrorMessage] = useState("");
 
   // Get the router.
   const router = useRouter();
@@ -49,9 +52,16 @@ export function LoginForm({
       }
     );
 
+    // Handle errors.
     if (!response.ok) {
-      throw new Error("Login failed");
+      const error = await response.json();
+      setErrorMessage(error.detail);
+      return;
     }
+
+    // Reset the error message.
+    // We do it here, so the Alert component doesn't jump unnecessarily every time we press the submit button.
+    setErrorMessage("");
 
     // Redirect to the homepage.
     router.push("/");
@@ -69,6 +79,14 @@ export function LoginForm({
         <CardContent>
           <form onSubmit={handleSubmit}>
             <FieldGroup>
+              {/* -- Alert -- */}
+              {errorMessage && <Alert variant="destructive">
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>
+                  {errorMessage}
+                </AlertDescription>
+              </Alert>}
+              {/* -- Field -- */}
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
                 <Input
