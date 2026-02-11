@@ -42,9 +42,9 @@ export const API_ENDPOINTS = {
     auth: {
         /**
          * Login endpoint.
-         * @returns `/auth/login`
+         * @returns `/auth/jwt/login`
          */
-        login: "/auth/login",
+        login: "/auth/jwt/login",
         /**
          * Register endpoint.
          * @returns `/auth/register`

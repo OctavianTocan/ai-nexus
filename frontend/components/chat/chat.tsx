@@ -106,7 +106,7 @@ const Chat = ({ conversationId, messages }: ChatProps) => {
   return (
     <>
       <div className="fixed inset-0 overflow-hidden">
-        <div className="w-[30%] mx-auto h-screen flex flex-col overflow-hidden">
+        <div className="w-[40%] mx-auto h-screen flex flex-col overflow-hidden">
           <Conversation className="flex-1 overflow-y-auto" resize="smooth">
             <ConversationContent>
               {chatHistory.length === 0 ? (

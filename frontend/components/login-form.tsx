@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { API_BASE_URL, API_ENDPOINTS } from "@/lib/api";
 
 export function LoginForm({
   className,
@@ -28,7 +29,8 @@ export function LoginForm({
   const [password, setPassword] = useState("");
   // Error message.
   const [errorMessage, setErrorMessage] = useState("");
-
+  // To disable buttons while submitting.
+  const [isLoading, setIsLoading] = useState(false);
   // Get the router.
   const router = useRouter();
 
@@ -36,26 +38,27 @@ export function LoginForm({
     // Stops the page from refreshing.
     event.preventDefault();
 
+    // Disable the button while submitting.
+    setIsLoading(true);
+
     // TODO: This inline fetch needs to be moved to a custom hook.
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/auth/jwt/login`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({
-          username: email,
-          password: password,
-        }),
-        credentials: "include",
-      }
-    );
+    // TODO: Especially now that we also use this in the signup form.
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.auth.login}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({ username: email, password: password }),
+      credentials: "include",
+    });
 
     // Handle errors.
+    // TODO: This same code is used on both the login and signup forms, which means it should be moved to a shared function.
     if (!response.ok) {
       const error = await response.json();
       setErrorMessage(error.detail);
+      // Enable the button again.
+      setIsLoading(false);
       return;
     }
 
@@ -122,9 +125,9 @@ export function LoginForm({
               </Field>
               <Field>
                 {/* Login */}
-                <Button type="submit">Login</Button>
+                <Button type="submit" disabled={isLoading}>Login</Button>
                 {/* TODO: Link to login with Google. */}
-                <Button variant="outline" type="button">
+                <Button variant="outline" type="button" disabled={isLoading}>
                   Login with Google
                 </Button>
                 {/* Signup */}
