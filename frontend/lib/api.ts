@@ -12,7 +12,7 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost
 export const API_ENDPOINTS = {
     /** Endpoints related to chat functionality */
     chat: {
-        /** 
+        /**
          * Chat streaming endpoint.
          * @returns `/api/chat`
          */
@@ -36,7 +36,8 @@ export const API_ENDPOINTS = {
          * Create a conversation.
          * @returns `/api/v1/conversations`
          */
-        create: "/api/v1/conversations",
+      create: "/api/v1/conversations",
+        list: "/api/v1/conversations",
     },
     /** Endpoints for authentication actions */
     auth: {

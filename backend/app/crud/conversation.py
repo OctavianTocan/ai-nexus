@@ -8,7 +8,6 @@ from typing import List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy.sql.naming import conv
 
 from app.models import Conversation
 from app.schemas import ConversationCreate
