@@ -15,6 +15,7 @@ import { useState, useEffect } from "react";
 import { Loader } from "../ai-elements/loader";
 import { useStickToBottomContext } from "use-stick-to-bottom";
 import { useChat } from "@/hooks/use-chat";
+import type { AgnoMessage } from "@/app/c/[conversationId]/page";
 
 /*
   Props for the Chat component.
@@ -24,8 +25,8 @@ import { useChat } from "@/hooks/use-chat";
 type ChatProps = {
   // The ID of the conversation to link messages to. (When not provided, we create a new conversation.)
   conversationId: string;
-  // TODO: Need to add a type for the messages, and then load it.
-  messages: string;
+  // The messages to display in the chat. (These are the messages that are already in the conversation when we load it.)
+  messages: Array<AgnoMessage>;
 };
 
 // Scroll to bottom of the chat when the chat history changes.
@@ -48,16 +49,12 @@ const Chat = ({ conversationId, messages }: ChatProps) => {
 
   // Message State.
   const [message, setMessage] = useState<PromptInputMessage>({
-    text: "",
+    content: "",
     files: [],
   });
   // Chat History Array.
-  const [chatHistory, setChatHistory] = useState<
-    Array<{
-      type: "user" | "assistant";
-      content: string;
-    }>
-  >([]);
+  // TODO: Do we actually need this if we already have the messages in the props?
+  const [chatHistory, setChatHistory] = useState<Array<AgnoMessage>>(messages);
   // Loading State.
   const [isLoading, setIsLoading] = useState(false);
 
@@ -65,7 +62,7 @@ const Chat = ({ conversationId, messages }: ChatProps) => {
   const handleSendMessage = async (message: PromptInputMessage) => {
     const newMessage = message;
     // Reset the message state. (So we can see that there's no more text in the text area, without this the text area will still show the previous message).
-    setMessage({ text: "", files: [] });
+    setMessage({ content: "", files: [] });
 
     // Start the loading state.
     setIsLoading(true);
@@ -73,8 +70,8 @@ const Chat = ({ conversationId, messages }: ChatProps) => {
     // Add the user message to the chat history.
     setChatHistory((prev) => [
       ...prev,
-      { type: "user", content: newMessage.text },
-      { type: "assistant", content: "" },
+      { role: "user", content: newMessage.content } as AgnoMessage,
+      { role: "assistant", content: "" } as AgnoMessage,
     ]);
 
     console.log("newMessage", newMessage);
@@ -83,7 +80,7 @@ const Chat = ({ conversationId, messages }: ChatProps) => {
     let assistantMessage = "";
 
     // Stream the response to the conversation with the given conversationId.
-    for await (const chunk of streamMessage(newMessage.text, conversationId)) {
+    for await (const chunk of streamMessage(newMessage.content, conversationId)) {
       assistantMessage += chunk || "";
       // Update the assistant message in the chat history.
       setChatHistory((prev) => {
@@ -94,7 +91,7 @@ const Chat = ({ conversationId, messages }: ChatProps) => {
         const newMessageIndex = newChatHistory.length - 1;
         newChatHistory[newMessageIndex] = {
           ...newChatHistory[newMessageIndex],
-          type: "assistant",
+          role: "assistant",
           content: assistantMessage,
         };
         return newChatHistory;
@@ -109,7 +106,6 @@ const Chat = ({ conversationId, messages }: ChatProps) => {
   return (
     <>
       <div className="fixed inset-0 overflow-hidden">
-        <p>{JSON.stringify(messages)}</p>
         <div className="w-[30%] mx-auto h-screen flex flex-col overflow-hidden">
           <Conversation className="flex-1 overflow-y-auto" resize="smooth">
             <ConversationContent>
@@ -124,7 +120,7 @@ const Chat = ({ conversationId, messages }: ChatProps) => {
                   {/* Chat History */}
                   {chatHistory.map((message, index) => {
                     return (
-                      <Message from={message.type} key={index}>
+                      <Message from={message.role} key={index}>
                         <MessageContent>
                           <MessageResponse>{message.content}</MessageResponse>
                         </MessageContent>
@@ -157,13 +153,13 @@ const Chat = ({ conversationId, messages }: ChatProps) => {
               placeholder="Ask anything about your memories or search the web..."
               className="pr-16 bg-white min-h-12.5"
               onChange={(e) =>
-                setMessage({ ...message, text: e.currentTarget.value })
+                setMessage({ ...message, content: e.currentTarget.value })
               }
-              value={message.text}
+              value={message.content}
             />
             {/* Send Button */}
             <PromptInputSubmit
-              disabled={message.text.length === 0}
+              disabled={message.content.length === 0}
               className="absolute bottom-1 right-1 cursor-pointer"
               status={isLoading ? "streaming" : "ready"}
             />

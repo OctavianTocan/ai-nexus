@@ -436,7 +436,7 @@ export const PromptInputActionAddAttachments = ({
     A JSON object with a "text" key and a "files" key.
 */
 export type PromptInputMessage = {
-  text: string;
+  content: string;
   files: FileUIPart[];
 };
 
@@ -748,7 +748,7 @@ export const PromptInput = ({
     )
       .then((convertedFiles: FileUIPart[]) => {
         try {
-          const result = onSubmit({ text, files: convertedFiles }, event);
+          const result = onSubmit({ content: text, files: convertedFiles }, event);
 
           // Handle both sync and async onSubmit
           if (result instanceof Promise) {
