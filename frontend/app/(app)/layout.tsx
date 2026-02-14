@@ -1,7 +1,15 @@
+import { Sidebar } from "@/components/new-sidebar";
+
 export default function AppLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <>{children}</>
+  return (
+    <>
+      <Sidebar>
+        {children}
+      </Sidebar>
+    </>
+  )
 }
