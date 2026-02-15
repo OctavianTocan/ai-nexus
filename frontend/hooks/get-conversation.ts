@@ -1,31 +1,15 @@
 import { useAuthedFetch } from "./use-authed-fetch";
 import type { Conversation } from "@/lib/types";
 import { API_ENDPOINTS } from "@/lib/api";
+import { useAuthedQuery } from "./use-authed-query";
 
 /*
     Custom hook to get a conversation by ID.
     @param conversationId - The ID of the conversation to get.
     @returns The conversation.
 */
-export default function useGetConversation(conversationId: string): Promise<Conversation> {
-    // Use the useAuthedFetch hook to fetch the conversation.
-    const fetcher = useAuthedFetch();
-
-    // Get a conversation by ID.
-    async function getConversation(): Promise<Conversation> {
-        const response = await fetcher(API_ENDPOINTS.conversations.get(conversationId), {
-            method: "GET",
-            headers: {
-                "content-type": "application/json",
-            }
-        });
-
-        // Get the conversation from the response.
-        const jsonData = await response.json();
-        // Return the conversation.
-        return jsonData as Conversation;
-    };
-
-    // Return the getConversation function.
-    return getConversation();
+export default function useGetConversation(conversationId: string) {
+    // Use the useAuthedQuery hook to fetch the conversation.
+    // We keep conversationId in the query key to ensure that conversations are cached separately and updated correctly when the ID changes.
+    return useAuthedQuery<Conversation>(["conversations", conversationId], API_ENDPOINTS.conversations.get(conversationId));
 };

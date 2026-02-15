@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 export const metadata: Metadata = {
   title: "AI Nexus",
@@ -12,6 +13,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const client = new QueryClient();
+
   return (
     <html lang="en">
       <head>
@@ -24,7 +27,11 @@ export default function RootLayout({
           />
         )}
       </head>
-      <body>{children}</body>
+      <body>
+        <QueryClientProvider client={client}>
+        {children}
+        </QueryClientProvider>
+      </body>
     </html>
   );
 }

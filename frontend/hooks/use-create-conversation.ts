@@ -3,7 +3,7 @@ import { API_ENDPOINTS } from "@/lib/api";
 
 /**
  * useCreateConversation is a hook that creates a new conversation.
- * 
+ *
  * @returns A function that creates a new conversation.
  * @returns The conversation ID.
  */
