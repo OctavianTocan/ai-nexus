@@ -7,7 +7,8 @@
   "scripts": {
     "frontend:dev": "bun --cwd frontend dev",
     "dev:backend": "uv run --project backend fastapi dev main.py",
-    "dev": "bun run dev.ts"
+    "dev": "bun run dev.ts",
+    "commit": "bun run commit.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"
