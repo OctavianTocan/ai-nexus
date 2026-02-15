@@ -39,6 +39,4 @@ const commitPrompt = `Given the current git state, do this:
    * Failure: show error and next steps`;
 
 console.log("Generating commits...");
-await $`claude -p ${commitPrompt} --allowedTools "Read, Bash(git *)"`
-  .quiet()
-  .nothrow();
+await $`claude -p ${commitPrompt} --allowedTools "Read, Bash(git *)"`.nothrow();
