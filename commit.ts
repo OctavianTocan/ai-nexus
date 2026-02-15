@@ -39,4 +39,14 @@ const commitPrompt = `Given the current git state, do this:
    * Failure: show error and next steps`;
 
 console.log("Generating commits...");
-await $`claude -p ${commitPrompt} --allowedTools "Read, Bash(git *)"`.nothrow();
+
+const proc = Bun.spawn(
+  ["claude", "-p", commitPrompt, "--allowedTools", "Read, Bash(git *)"],
+  {
+    stdout: "inherit",
+    stderr: "inherit",
+  },
+);
+
+const exitCode = await proc.exited;
+process.exit(exitCode);
