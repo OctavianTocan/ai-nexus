@@ -40,12 +40,37 @@ const commitPrompt = `Given the current git state, do this:
 
 console.log("Generating commits...");
 
+// Spawn the "claude" subprocess with the commit prompt and allowed tools
 const proc = Bun.spawn(
-  ["claude", "-p", commitPrompt, "--allowedTools", "Read, Bash(git *)"],
+  [
+    "claude",
+    "-p",
+    commitPrompt,
+    "--allowedTools",
+    "Bash(git *),Bash(git commit *),Read",
+  ],
   {
-    stdout: "inherit",
-    stderr: "inherit",
+    stdout: "pipe",
+    stderr: "pipe",
   },
+);
+
+// Writes stdout from the subprocess to the main process's stdout
+proc.stdout.pipeTo(
+  new WritableStream({
+    write(chunk) {
+      process.stdout.write(chunk);
+    },
+  }),
+);
+
+// Writes stderr from the subprocess to the main process's stderr
+proc.stderr.pipeTo(
+  new WritableStream({
+    write(chunk) {
+      process.stderr.write(chunk);
+    },
+  }),
 );
 
 const exitCode = await proc.exited;
