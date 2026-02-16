@@ -1,11 +1,15 @@
-import { AppSidebar } from "./app-sidebar";
+import { NavChats } from "./nav-chats";
 import { Separator } from "./ui/separator";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "./ui/sidebar";
+import { Sidebar, SidebarContent, SidebarInset, SidebarProvider, SidebarTrigger } from "./ui/sidebar";
 
-export function Sidebar({ children }: { children: React.ReactNode }) {
+export function NewSidebar({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      <AppSidebar />
+    <Sidebar variant="inset">
+      <SidebarContent>
+        <NavChats />
+      </SidebarContent>
+    </Sidebar>
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-4">

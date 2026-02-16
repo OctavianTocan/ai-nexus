@@ -1,4 +1,4 @@
-import { Sidebar } from "@/components/new-sidebar";
+import { NewSidebar } from "@/components/new-sidebar";
 
 export default function AppLayout({
   children,
@@ -7,9 +7,9 @@ export default function AppLayout({
 }>) {
   return (
     <>
-      <Sidebar>
+      <NewSidebar>
         {children}
-      </Sidebar>
+      </NewSidebar>
     </>
   )
 }

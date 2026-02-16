@@ -17,30 +17,26 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 import { IconChevronRight } from "@tabler/icons-react"
+import useGetConversations from "@/hooks/get-conversations";
 
-export function NavChats({
-  items,
-}: {
-  items: {
-    title: string
-    url: string
-    icon: React.ReactNode
-    isActive?: boolean
-    items?: {
-      title: string
-      url: string
-    }[]
-  }[]
-}) {
+// TODO: This needs to take in conversations/chats.
+export function NavChats() {
+  // Get the conversations for the current user.
+  const { data: conversations } = useGetConversations();
+  // If there are no conversations, return null.
+  if (!conversations || conversations.length === 0) 
+    return null;
+
+  // If there are conversations, render the sidebar group and menu.
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Your Chats</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={item.title}>
-              <a href={item.url}>
-                <span>{item.title}</span>
+        {conversations.map((conversation) => (
+          <SidebarMenuItem key={conversation.id}>
+            <SidebarMenuButton asChild tooltip={conversation.title}>
+              <a href={`/c/${conversation.id}`}>
+                <span>{conversation.title}</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
