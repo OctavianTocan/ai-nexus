@@ -19,7 +19,6 @@ export default function Page() {
   const handleNewConversation = async () => {
     // Call the createConversation function to create a new conversation, and then navigate to the new conversation route.
     const result = await createConversationMutation.mutateAsync();
-
     // Navigate to the new conversation route.
     router.push(`/c/${result.id}`);
   };
@@ -29,8 +28,8 @@ export default function Page() {
     <div className="flex justify-center h-screen items-center">
       <Button className="w-50 mx-auto cursor-pointer h-10" 
       onClick={handleNewConversation}
-      disabled={createConversationMutation.isPending}>
-        {createConversationMutation.isPending ? "Creating Conversation" : "New Conversation"}
+      disabled={!createConversationMutation.isIdle}>
+        {createConversationMutation.isIdle ? "New Conversation" : "Creating Conversation..."}
       </Button>
     </div>
   )
