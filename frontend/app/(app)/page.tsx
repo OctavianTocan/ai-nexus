@@ -1,7 +1,7 @@
 'use client';
 // TODO: Make this a server component. There's really no need for client-side state here.
 
-import useCreateConversation from "@/hooks/use-create-conversation";
+import { useCreateConversation } from "@/hooks/use-create-conversation";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
@@ -13,22 +13,25 @@ import { Button } from "@/components/ui/button";
  * @returns The landing page of the application.
  */
 export default function Page() {
+  const createConversationMutation = useCreateConversation();
   const router = useRouter();
-  // Create a new conversation. Returns a function that creates a new conversation.
-  const createConversation = useCreateConversation();
-
   // Handle the new conversation button click.
   const handleNewConversation = async () => {
     // Call the createConversation function to create a new conversation, and then navigate to the new conversation route.
-    const newConversationId = await createConversation();
+    const result = await createConversationMutation.mutateAsync();
+
     // Navigate to the new conversation route.
-    router.push(`/c/${newConversationId}`);
+    router.push(`/c/${result}`);
   };
 
   // Render the page.
   return (
     <div className="flex justify-center h-screen items-center">
-      <Button className="w-50 mx-auto cursor-pointer h-10" onClick={handleNewConversation}>New Conversation</Button>
+      <Button className="w-50 mx-auto cursor-pointer h-10" 
+      onClick={handleNewConversation}
+      disabled={createConversationMutation.isPending}>
+        {createConversationMutation.isPending ? "Creating Conversation" : "New Conversation"}
+      </Button>
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import { useMutation } from "@tanstack/react-query";
 import { useAuthedFetch } from "./use-authed-fetch";
 import { API_ENDPOINTS } from "@/lib/api";
 
@@ -7,26 +8,20 @@ import { API_ENDPOINTS } from "@/lib/api";
  * @returns A function that creates a new conversation.
  * @returns The conversation ID.
  */
-export default function useCreateConversation() {
+export function useCreateConversation() {
     const fetcher = useAuthedFetch();
 
-    // Create a new conversation.
-    async function createConversation(): Promise<string> {
-        // Send a POST request to the /api/v1/conversations endpoint to create a new conversation.
-        const response = await fetcher(API_ENDPOINTS.conversations.create, {
-            method: "POST",
-            body: JSON.stringify({}),
-            headers: {
-                "content-type": "application/json",
-            }
-        });
-
-        // Get the conversation ID from the response.
-        const jsonData = await response.json();
-        // Return the conversation ID.
-        return jsonData.id as string;
-    };
-
-    // Return the createConversation function.
-    return createConversation;
+    return useMutation({
+        mutationKey: ['conversations'],
+        mutationFn: async () => {
+            const response = await fetcher(API_ENDPOINTS.conversations.create, {
+                method: "POST",
+                body: JSON.stringify({}),
+                headers: {
+                    "content-type": "application/json",
+                }
+            });
+            return response.json();
+        }
+    });
 }
