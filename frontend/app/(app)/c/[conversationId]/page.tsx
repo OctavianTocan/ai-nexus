@@ -1,6 +1,5 @@
-import Chat from "@/components/chat/chat";
+import ChatContainer from "@/features/chat/ChatContainer";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/api";
-import type { Conversation } from "@/lib/types";
 import { cookies } from "next/headers";
 import { notFound, unauthorized } from "next/navigation";
 
@@ -58,8 +57,9 @@ export default async function ConversationPage({ params }: ConversationPageProps
     // Render the chat component.
     return (
         <div>
-            <h1 className="w-[50%] mx-auto">Conversation {conversationId}</h1>
-            <Chat conversationId={conversationId} messages={messages} />
+            <h1 className="flex-1 items-center text-center">Conversation {conversationId}</h1>
+            <ChatContainer/>
+            {/* <Chat conversationId={conversationId} messages={messages} /> */}
         </div>
     );
 }

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuthedFetch } from "./use-authed-fetch";
+import { useAuthedFetch } from "../../../hooks/use-authed-fetch";
 import { API_ENDPOINTS } from "@/lib/api";
 
 /**

@@ -1,7 +1,7 @@
 'use client';
 // TODO: Make this a server component. There's really no need for client-side state here.
 
-import { useCreateConversation } from "@/hooks/use-create-conversation";
+import { useCreateConversation } from "@/features/chat/hooks/use-create-conversation";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
