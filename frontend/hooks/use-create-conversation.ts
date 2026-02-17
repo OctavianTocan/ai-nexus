@@ -30,16 +30,3 @@ export default function useCreateConversation() {
     // Return the createConversation function.
     return createConversation;
 }
-
-// TODO
-/*
-#### 7. Create `useCreateConversation` Hook
-**File:** `frontend/hooks/use-create-conversation.ts` (new file)
-**Action:** Create reusable hook that:
-- Calls `POST /api/v1/conversations`
-- Extracts the returned conversation ID
-- Navigates to `/c/[conversationId]`
-- Returns `isCreating`, `error`, and `createAndNavigate` function
-**Why Needed:** Allows creating conversations from any component (landing page, sidebar, etc.)
-**Estimated Time:** 20 minutes
-*/

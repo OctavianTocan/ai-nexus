@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sidebar"
 import { IconChevronRight } from "@tabler/icons-react"
 import useGetConversations from "@/hooks/get-conversations";
+import Link from "next/link";
 
 // TODO: This needs to take in conversations/chats.
 export function NavChats() {
@@ -35,9 +36,10 @@ export function NavChats() {
         {conversations.map((conversation) => (
           <SidebarMenuItem key={conversation.id}>
             <SidebarMenuButton asChild tooltip={conversation.title}>
-              <a href={`/c/${conversation.id}`}>
+              {/* Using link for soft navigation. */}
+              <Link href={`/c/${conversation.id}`}>
                 <span>{conversation.title}</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}
