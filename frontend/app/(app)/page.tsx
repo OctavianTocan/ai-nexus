@@ -21,7 +21,7 @@ export default function Page() {
     const result = await createConversationMutation.mutateAsync();
 
     // Navigate to the new conversation route.
-    router.push(`/c/${result}`);
+    router.push(`/c/${result.id}`);
   };
 
   // Render the page.
