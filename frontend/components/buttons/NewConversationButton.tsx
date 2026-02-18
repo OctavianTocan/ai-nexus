@@ -1,3 +1,4 @@
+'use client';
 import { useRouter } from "next/navigation";
 import NewConversationButtonView from "./NewConversationButtonView";
 import { useCreateConversation } from "@/features/chat/hooks/use-create-conversation";
