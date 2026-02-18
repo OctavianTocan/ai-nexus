@@ -1,4 +1,4 @@
-import Chat from "@/features/chat/ChatContainer";
+import Chat from "@/features/chat/Chat";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/api";
 import { cookies } from "next/headers";
 import { notFound, unauthorized } from "next/navigation";
