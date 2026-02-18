@@ -102,13 +102,14 @@ async def get_conversation_messages(
 
     # Need the try/except so that we do not throw errors on new conversations.
     try:
-        # We instantiate the agent without a session_id, because we're going to get the messages from the Agno database.
+        # We instantiate the agent without a session_id.
+        # Because we're going to get the messages from the Agno database.
         agent = Agent(db=agno_db)
         # Get the chat history for the conversation.
         chat_history = agent.get_chat_history(session_id=str(conversation_id))
         print(chat_history)
         return chat_history
-    except:
+    except (ValueError, KeyError, AttributeError):
         return []
 
 
@@ -227,34 +228,6 @@ def chat(
     4. Agno persists messages with that session_id
     5. Frontend can retrieve history via your API or Agno API
     """
-    # TODO: Implement conversation_id handling in ChatRequest schema first
-    # The schema should have: conversation_id: Optional[uuid.UUID]
-    #
-    # After adding conversation_id field to schema:
-    # 1. Check if conversation_id is provided in request
-    # 2. If yes: Verify user owns this conversation (get from your DB)
-    # 3. Use conversation_id as Agno's session_id: session_id=str(conversation_id)
-    # 4. If no conversation_id: Let Agno auto-generate new session_id
-    # 5. Optionally: Create new conversation in your DB if needed
-    #
-    # Example code structure:
-    # if request.conversation_id:
-    #     db_conversation = await get_conversation(session, request.conversation_id, user.id)
-    #     if not db_conversation or db_conversation.user_id != user.id:
-    #         raise HTTPException(status_code=404, detail="Conversation not found")
-    #     agno_session_id = str(request.conversation_id)
-    # else:
-    #     # New conversation - create it first
-    #     db_conversation = await create_conversation_service(user.id, session, ConversationCreate())
-    #     agno_session_id = str(db_conversation.id)  # Use your ID as Agno session
-
-    # Verify user owns this conversation (get from your DB)
-    # If they don't, we should show them a simple error message, and a button to return to the home page.
-    # TODO: What I'm wondering is whether we should have an endpoint to verify ownership of a conversation, or that's simply part of a CRUD operation? I'm not really sure how to do this.
-
-    # TODO: Need to figure out how exactly we're going to check whether a user owns a conversation. It feels like that should be a utility of some sort, instead of having to call get_conversation_service -- It's odd.
-    # if request.conversation_id
-    # existing_conversation: Optional[Conversation] = await get_conversation_service(user.id, session, conversation_id)
 
     # Create to Agno agent.
     agno_agent = Agent(
@@ -272,10 +245,6 @@ def chat(
         num_history_runs=3,
         markdown=True,
     )
-
-    # This is actually our final conversation id. (Gets created if we didn't pass one in.)
-    # TODO: We need to return this to the frontend in some way, so it can keep track of it.
-    # agno_agent.session_id;
 
     def event_stream():
         """
@@ -300,150 +269,4 @@ def chat(
             "X-Accel-Buffering": "no",
         },
     )
-
-    # TODO: Add endpoint to get conversation by ID
-    # @app.get("/api/v1/conversations/{conversation_id}")
-    # async def get_conversation_endpoint(
-    #     conversation_id: uuid.UUID,
-    #     user: User = Depends(current_active_user),
-    #     session: AsyncSession = Depends(get_async_session),
-    # ) -> ConversationResponse:
-    #     """
-    #     Get a single conversation by ID.
-    #
-    #     Security: Verify user owns this conversation.
-    #     """
-    #     from app.crud.conversation import get_conversation
-    #     db_conversation = await get_conversation(session, conversation_id, user.id)
-    #     if not db_conversation:
-    #         raise HTTPException(status_code=404, detail="Conversation not found")
-    #
-    #     # TODO: Optionally fetch messages from Agno's database
-    #     # from app.crud.message import get_agno_messages
-    #     # messages = await get_agno_messages(agno_db, str(conversation_id))
-    #     # return ConversationResponse(
-    #     #     id=db_conversation.id,
-    #     #     user_id=db_conversation.user_id,
-    #     #     title=db_conversation.title,
-    #     #     created_at=db_conversation.created_at,
-    #     #     updated_at=db_conversation.updated_at,
-    #     #     messages=messages  # ← Add if you fetch from Agno
-    #     )
-    #     return ConversationResponse(
-    #         id=db_conversation.id,
-    #         user_id=db_conversation.user_id,
-    #         title=db_conversation.title,
-    #         created_at=db_conversation.created_at,
-    #         updated_at=db_conversation.updated_at
-    #     )
-
-    # TODO: Add endpoint to list all conversations for user
-    # @app.get("/api/v1/conversations")
-    # async def list_conversations_endpoint(
-    #     user: User = Depends(current_active_user),
-    #     session: AsyncSession = Depends(get_async_session),
-    #     skip: int = 0,
-    #     limit: int = 100
-    # ) -> list[ConversationResponse]:
-    #     """
-    #     List all conversations for the authenticated user.
-    #
-    #     Returns conversations ordered by updated_at DESC (most recent first).
-    #     """
-    #     from app.crud.conversation import get_conversations_for_user
-    #     conversations = await get_conversations_for_user(session, user.id, skip, limit)
-    #     return [
-    #         ConversationResponse(
-    #             id=conv.id,
-    #             user_id=conv.user_id,
-    #             title=conv.title,
-    #             created_at=conv.created_at,
-    #             updated_at=conv.updated_at
-    #         )
-    #         for conv in conversations
-    #     ]
-
-    # TODO: Add endpoint to update conversation title
-    # @app.put("/api/v1/conversations/{conversation_id}")
-    # async def update_conversation_endpoint(
-    #     conversation_id: uuid.UUID,
-    #     update_data: ConversationUpdate,
-    #     user: User = Depends(current_active_user),
-    #     session: AsyncSession = Depends(get_async_session),
-    # ) -> ConversationResponse:
-    #     """
-    #     Update conversation metadata (title, etc.).
-    #
-    #     Use case: After LLM generates title from first message.
-    #     """
-    #     from app.crud.conversation import update_conversation
-    #     updated_conv = await update_conversation(
-    #         session,
-    #         conversation_id,
-    #         user.id,
-    #         update_data
-    #     )
-    #     if not updated_conv:
-    #         raise HTTPException(status_code=404, detail="Conversation not found")
-    #
-    #     return ConversationResponse(
-    #         id=updated_conv.id,
-    #         user_id=updated_conv.user_id,
-    #         title=updated_conv.title,
-    #         created_at=updated_conv.created_at,
-    #         updated_at=updated_conv.updated_at
-    #     )
-
-    # TODO: Add endpoint to delete conversation
-    # @app.delete("/api/v1/conversations/{conversation_id}")
-    # async def delete_conversation_endpoint(
-    #     conversation_id: uuid.UUID,
-    #     user: User = Depends(current_active_user),
-    #     session: AsyncSession = Depends(get_async_session),
-    # ):
-    #     """
-    #     Delete a conversation and optionally its Agno session.
-    #
-    #     Use case: User deletes conversation from UI.
-    #     """
-    #     from app.crud.conversation import delete_conversation
-    #     success = await delete_conversation(session, conversation_id, user.id)
-    #     if not success:
-    #         raise HTTPException(status_code=404, detail="Conversation not found")
-    #
-    #     # TODO: Optionally clear Agno session to clean up its database
-    #     # from agno.agent import Agent
-    #     # agent = Agent(db=agno_db)
-    #     # agent.get_session(session_id=str(conversation_id)).clear()
-    #
-    #     return {"message": "Conversation deleted"}
-
-    # TODO: Add endpoint to get messages for a conversation
-    # @app.get("/api/v1/conversations/{conversation_id}/messages")
-    # async def get_conversation_messages_endpoint(
-    #     conversation_id: uuid.UUID,
-    #     user: User = Depends(current_active_user),
-    #     session: AsyncSession = Depends(get_async_session),
-    # ):
-    #     """
-    #     Get all messages for a conversation.
-    #
-    #     Messages can come from:
-    #     1. Your database (mirror of Agno)
-    #     2. Agno's database (actual source)
-    #     3. Both (merge for completeness)
-    #     """
-    #     from app.crud.message import get_messages_by_conversation, get_agno_messages
-    #
-    #     # Option 1: Get from your DB (faster for basic list)
-    #     your_messages = await get_messages_by_conversation(session, conversation_id)
-    #
-    #     # Option 2: Get from Agno's DB (actual source)
-    #     agno_messages = await get_agno_messages(agno_db, str(conversation_id))
-    #
-    #     # Merge or return one source
-    #     return {
-    #         "conversation_id": conversation_id,
-    #         "messages": agno_messages,  # ← Prefer Agno's (actual source)
-    #         "your_db_messages": your_messages  # ← Optional: backup/debug
-    #     }
+    # TODO: Add endpoint to delete a conversation.

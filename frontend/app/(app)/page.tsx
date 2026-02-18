@@ -1,9 +1,4 @@
-'use client';
-// TODO: Make this a server component. There's really no need for client-side state here.
-
-import { useCreateConversation } from "@/features/chat/hooks/use-create-conversation";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import NewConversationButton from "@/components/buttons/NewConversationButton";
 
 /**
  * Page is the landing page of the application.
@@ -13,24 +8,10 @@ import { Button } from "@/components/ui/button";
  * @returns The landing page of the application.
  */
 export default function Page() {
-  const createConversationMutation = useCreateConversation();
-  const router = useRouter();
-  // Handle the new conversation button click.
-  const handleNewConversation = async () => {
-    // Call the createConversation function to create a new conversation, and then navigate to the new conversation route.
-    const result = await createConversationMutation.mutateAsync();
-    // Navigate to the new conversation route.
-    router.push(`/c/${result.id}`);
-  };
-
   // Render the page.
   return (
     <div className="flex justify-center h-screen items-center">
-      <Button className="w-50 mx-auto cursor-pointer h-10" 
-      onClick={handleNewConversation}
-      disabled={!createConversationMutation.isIdle}>
-        {createConversationMutation.isIdle ? "New Conversation" : "Creating Conversation..."}
-      </Button>
+      <NewConversationButton />
     </div>
   )
 }
