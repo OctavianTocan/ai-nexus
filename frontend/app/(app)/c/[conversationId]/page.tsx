@@ -59,7 +59,6 @@ export default async function ConversationPage({ params }: ConversationPageProps
         <div>
             <h1 className="flex-1 items-center text-center">Conversation {conversationId}</h1>
             <ChatContainer/>
-            {/* <Chat conversationId={conversationId} messages={messages} /> */}
         </div>
     );
 }
