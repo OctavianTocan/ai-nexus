@@ -1,4 +1,4 @@
-import ChatContainer from "@/features/chat/ChatContainer";
+import Chat from "@/features/chat/ChatContainer";
 import { API_BASE_URL, API_ENDPOINTS } from "@/lib/api";
 import { cookies } from "next/headers";
 import { notFound, unauthorized } from "next/navigation";
@@ -59,7 +59,7 @@ export default async function ConversationPage({ params }: ConversationPageProps
     return (
         <div>
             {/* <h1 className="flex-1 items-center text-center">Conversation {conversationId}</h1> */}
-            <ChatContainer/>
+            <Chat/>
         </div>
     );
 }
