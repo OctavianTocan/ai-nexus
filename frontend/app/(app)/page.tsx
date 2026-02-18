@@ -54,10 +54,11 @@ export default async function ConversationPage({ params }: ConversationPageProps
 
     const messages = await response.json();
 
+    // TODO: We want to show a chat here, and only really create a new conversation if the user sends a message. Then, it'll be easier to create the conversation directly with a title, using the user's first message as the title.
     // Render the chat component.
     return (
         <div>
-            <h1 className="flex-1 items-center text-center">Conversation {conversationId}</h1>
+            {/* <h1 className="flex-1 items-center text-center">Conversation {conversationId}</h1> */}
             <ChatContainer/>
         </div>
     );
