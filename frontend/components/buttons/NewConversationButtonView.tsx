@@ -1,6 +1,6 @@
 'use client';
-import { Button } from "@base-ui/react";
 import type { UseMutationResult } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
 
 interface NewConversationButtonProps {
     handleNewConversation: () => void;
