@@ -1,10 +1,36 @@
+// TODO: Refactor chat architecture — Container/View split
+//
+// Current problem: ChatView does too much (state, streaming logic, message building, AND rendering).
+// It also requires `conversationId` upfront, which breaks the home page use case.
+//
+// Target architecture:
+//   ChatContainer ("use client") — holds all logic:
+//     - chatHistory, isLoading, message state
+//     - useChat() for SSE streaming
+//     - useCreateConversation() when no conversationId (home page case)
+//     - router.push(/c/[id]) after conversation is created
+//     - Props: { conversationId?: string; initialMessages?: AgnoMessage[] }
+//
+//   ChatView ("use client") — pure render, no logic:
+//     - Props: { chatHistory, isLoading, message, onMessageChange, onSendMessage }
+//     - Only UI hooks allowed (e.g. useStickToBottomContext for scroll)
+//
+//   Pages (server components):
+//     - app/(app)/page.tsx → <ChatContainer /> (no props, home page = new chat)
+//     - app/(app)/c/[conversationId]/page.tsx → <ChatContainer conversationId initialMessages />
+//
+// See: Chat.tsx (rename/repurpose to ChatContainer.tsx)
+
 "use client";
 import {
   Message,
   MessageContent,
   MessageResponse,
 } from "@/components/ai-elements/message";
-import { Conversation, ConversationContent } from "../../components/ai-elements/conversation";
+import {
+  Conversation,
+  ConversationContent,
+} from "../../components/ai-elements/conversation";
 import {
   PromptInput,
   PromptInputSubmit,
@@ -42,7 +68,6 @@ const ChatScrollAnchor = ({ track }: { track: number }) => {
 };
 
 const ChatView = ({ conversationId, messages }: ChatProps) => {
-
   // Chat Hook.
   const { streamMessage } = useChat();
 
@@ -79,7 +104,10 @@ const ChatView = ({ conversationId, messages }: ChatProps) => {
     let assistantMessage = "";
 
     // Stream the response to the conversation with the given conversationId.
-    for await (const chunk of streamMessage(newMessage.content, conversationId)) {
+    for await (const chunk of streamMessage(
+      newMessage.content,
+      conversationId,
+    )) {
       assistantMessage += chunk || "";
       // Update the assistant message in the chat history.
       setChatHistory((prev) => {
