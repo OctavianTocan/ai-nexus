@@ -130,7 +130,7 @@ const ChatView = ({ conversationId, messages }: ChatProps) => {
 
   return (
     <>
-      <div className="overflow-hidden sm:max-w-[80%] md:max-w-[80%] lg:max-w-[80%]  mx-auto">
+      <div className="overflow-hidden sm:max-w-[80%] lg:max-w-[60%] xl:max-w-[50%] mx-auto">
         <div className="h-[90vh] flex flex-col overflow-hidden">
           <Conversation className="flex-1 overflow-y-auto" resize="smooth">
             <ConversationContent>
