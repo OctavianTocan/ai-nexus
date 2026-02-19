@@ -50,9 +50,9 @@ import type { AgnoMessage } from "@/app/(app)/page";
 */
 type ChatProps = {
   // The ID of the conversation to link messages to. (When not provided, we create a new conversation.)
-  conversationId: string;
+  conversationId?: string;
   // The messages to display in the chat. (These are the messages that are already in the conversation when we load it.)
-  messages: Array<AgnoMessage>;
+  messages?: Array<AgnoMessage>;
 };
 
 // Scroll to bottom of the chat when the chat history changes.
@@ -78,7 +78,7 @@ const ChatView = ({ conversationId, messages }: ChatProps) => {
   });
   // Chat History Array.
   // TODO: Do we actually need this if we already have the messages in the props?
-  const [chatHistory, setChatHistory] = useState<Array<AgnoMessage>>(messages);
+  const [chatHistory, setChatHistory] = useState<Array<AgnoMessage>>(messages || []);
   // Loading State.
   const [isLoading, setIsLoading] = useState(false);
 
@@ -106,7 +106,7 @@ const ChatView = ({ conversationId, messages }: ChatProps) => {
     // Stream the response to the conversation with the given conversationId.
     for await (const chunk of streamMessage(
       newMessage.content,
-      conversationId,
+      conversationId || "",
     )) {
       assistantMessage += chunk || "";
       // Update the assistant message in the chat history.
@@ -130,8 +130,8 @@ const ChatView = ({ conversationId, messages }: ChatProps) => {
 
   return (
     <>
-      <div className="fixed inset-0 overflow-hidden">
-        <div className="sm:w-[80%] md:w-[80%] lg:w-[50%] max-w-[750px] mx-auto h-screen flex flex-col overflow-hidden">
+      <div className="overflow-hidden sm:max-w-[80%] md:max-w-[80%] lg:max-w-[80%]  mx-auto">
+        <div className="h-[90vh] flex flex-col overflow-hidden">
           <Conversation className="flex-1 overflow-y-auto" resize="smooth">
             <ConversationContent>
               {chatHistory.length === 0 ? (
@@ -171,7 +171,7 @@ const ChatView = ({ conversationId, messages }: ChatProps) => {
           {/* Composer */}
           <PromptInput
             onSubmit={(message) => handleSendMessage(message)}
-            className="mb-4 px-2"
+            className="px-2 pb-2"
           >
             {/* Text Area */}
             <PromptInputTextarea

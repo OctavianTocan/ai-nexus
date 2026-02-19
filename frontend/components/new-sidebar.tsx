@@ -13,7 +13,7 @@ export function NewSidebar({ children }: { children: React.ReactNode }) {
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
+            <SidebarTrigger className="-ml-1 cursor-pointer" />
             <Separator
               orientation="vertical"
               className="mr-2 data-vertical:h-4 data-vertical:self-auto"
@@ -21,7 +21,9 @@ export function NewSidebar({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         {/* -- PAGE LAYOUT -- */}
-        {children}
+        <div className="flex-1">
+          {children}
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );
