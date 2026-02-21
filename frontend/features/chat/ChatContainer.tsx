@@ -1,6 +1,6 @@
 import type { AgnoMessage } from "@/lib/types";
 import ChatView from "./ChatView";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useChat } from "./hooks/use-chat";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 
@@ -16,6 +16,8 @@ export default function ChatContainer({ conversationId, initialChatHistory }: Ch
   // Chat Hook.
   const { streamMessage } = useChat();
 
+  const hasNavigated = useRef(false);
+
   // Message State.
   const [message, setMessage] = useState<PromptInputMessage>({
     content: "",
@@ -29,6 +31,11 @@ export default function ChatContainer({ conversationId, initialChatHistory }: Ch
 
   // Add the user message to the chat history.
   const handleSendMessage = async (message: PromptInputMessage) => {
+    if (!hasNavigated.current) {
+      window.history.replaceState(null, "", `/c/${conversationId}`);
+      hasNavigated.current = true;
+    }
+
     const newMessage = message;
     // Reset the message state. (So we can see that there's no more text in the text area, without this the text area will still show the previous message).
     setMessage({ content: "", files: [] });
