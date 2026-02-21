@@ -200,8 +200,10 @@ async def create_conversation(
 
 
 @app.post("/api/chat")
-def chat(
-    request: ChatRequest, user: User = Depends(current_active_user)
+async def chat(
+    request: ChatRequest,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
 ) -> StreamingResponse:
     """
     This endpoint is used to chat with the Agno agent.
@@ -228,12 +230,27 @@ def chat(
     4. Agno persists messages with that session_id
     5. Frontend can retrieve history via your API or Agno API
     """
+    # We assume that the frontend passed a valid conversation_id that belongs to the user.
+    conversation_id = request.conversation_id
 
-    # Create to Agno agent.
+    # We must first check if the conversationid provided exists and belongs to the user. This is important for security, so that users cannot access conversations that do not belong to them.
+    user_conversation: Optional[Conversation] = await get_conversation_service(
+        user.id, session, conversation_id
+    )
+
+    # We now make sure that we got something, and if we did not, then we create a new conversation. This allows us to use the same chat endpoint for both creating new conversations and sending messages to existing conversations.
+    if user_conversation is None:
+        # If no conversation_id is provided, create a new conversation.
+        conversation = await create_conversation_service(
+            user.id, session, ConversationCreate()
+        )
+        conversation_id = conversation.id
+
+    # Create to Agno agent. We use the conversation_id as the session_id for Agno, so that Agno can persist the messages and history for that conversation.
     agno_agent = Agent(
         name="Agno Agent",
         user_id=str(user.id),
-        session_id=(str(request.conversation_id) if request.conversation_id else None),
+        session_id=(str(conversation_id)),
         # When updating this, apparently the server needs to be restarted (?)
         model=Gemini(id="gemini-3-flash-preview"),
         # Add a database to the Agent

@@ -47,7 +47,7 @@ export default async function ConversationPage({ params }: ConversationPageProps
     return (
         <div>
             <h1 className="flex-1 items-center text-center">Conversation {conversationId}</h1>
-            <ChatContainer id={conversationId} messages={messages} />
+            <ChatContainer conversationId={conversationId} initialChatHistory={messages} />
         </div>
     );
 }

@@ -25,7 +25,6 @@ export default function ChatContainer({ conversationId, initialChatHistory }: Ch
   // Loading State.
   const [isLoading, setIsLoading] = useState(false);
   // Chat History Array.
-  // TODO: Do we actually need this if we already have the messages in the props?
   const [chatHistory, setChatHistory] = useState<Array<AgnoMessage>>(initialChatHistory || []);
 
   // Add the user message to the chat history.
