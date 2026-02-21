@@ -13,17 +13,6 @@ interface ConversationPageProps {
     params: Promise<{ conversationId: string }>;
 }
 
-// TODO: Needs to be moved to a shared type file.
-/**
- * Message shape used by the Agno agent / chat API.
- * @property role - Sender of the message: user or assistant.
- * @property content - Plain-text message body.
- */
-export interface AgnoMessage {
-    role: "user" | "assistant";
-    content: string;
-}
-
 export default async function ConversationPage({ params }: ConversationPageProps) {
     //TODO: We need to make sure that we're not trying to fetch messages when we've just created a conversation.
     // TODO: All of this needs some cleanup and error handling.

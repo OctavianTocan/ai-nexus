@@ -18,3 +18,13 @@ export interface Conversation {
     // The date and time the conversation was last updated.
     updated_at: string;
 }
+
+/**
+ * Message shape used by the Agno agent / chat API.
+ * @property role - Sender of the message: user or assistant.
+ * @property content - Plain-text message body.
+ */
+export interface AgnoMessage {
+    role: "user" | "assistant";
+    content: string;
+}
