@@ -1,27 +1,5 @@
-// TODO: Refactor chat architecture — Container/View split
-//
-// Current problem: ChatView does too much (state, streaming logic, message building, AND rendering).
-// It also requires `conversationId` upfront, which breaks the home page use case.
-//
-// Target architecture:
-//   ChatContainer ("use client") — holds all logic:
-//     - chatHistory, isLoading, message state
-//     - useChat() for SSE streaming
-//     - useCreateConversation() when no conversationId (home page case)
-//     - router.push(/c/[id]) after conversation is created
-//     - Props: { conversationId?: string; initialMessages?: AgnoMessage[] }
-//
-//   ChatView ("use client") — pure render, no logic:
-//     - Props: { chatHistory, isLoading, message, onMessageChange, onSendMessage }
-//     - Only UI hooks allowed (e.g. useStickToBottomContext for scroll)
-//
-//   Pages (server components):
-//     - app/(app)/page.tsx → <ChatContainer /> (no props, home page = new chat)
-//     - app/(app)/c/[conversationId]/page.tsx → <ChatContainer conversationId initialMessages />
-//
-// See: Chat.tsx (rename/repurpose to ChatContainer.tsx)
-
 "use client";
+
 import {
   Message,
   MessageContent,
@@ -40,8 +18,7 @@ import type { PromptInputMessage } from "../../components/ai-elements/prompt-inp
 import { useState, useEffect } from "react";
 import { Loader } from "../../components/ai-elements/loader";
 import { useStickToBottomContext } from "use-stick-to-bottom";
-import { useChat } from "@/features/chat/hooks/use-chat";
-import type { AgnoMessage } from "@/app/(app)/page";
+import type { AgnoMessage } from "@/lib/types";
 
 /*
   Props for the Chat component.
@@ -49,10 +26,14 @@ import type { AgnoMessage } from "@/app/(app)/page";
     conversationId: The ID of the conversation to link messages to. (When not provided, we create a new conversation.)
 */
 type ChatProps = {
-  // The ID of the conversation to link messages to. (When not provided, we create a new conversation.)
-  conversationId?: string;
-  // The messages to display in the chat. (These are the messages that are already in the conversation when we load it.)
-  messages?: Array<AgnoMessage>;
+  message: PromptInputMessage;
+  // Whether the chat is currently loading a response. This is used to show a loading spinner in the UI while we're waiting for a response from the assistant.
+  isLoading?: boolean;
+
+  onUpdateMessage: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onSendMessage: (message: PromptInputMessage) => void;
+
+  chatHistory: Array<AgnoMessage>;
 };
 
 // Scroll to bottom of the chat when the chat history changes.
@@ -67,67 +48,7 @@ const ChatScrollAnchor = ({ track }: { track: number }) => {
   return null;
 };
 
-const ChatView = ({ conversationId, messages }: ChatProps) => {
-  // Chat Hook.
-  const { streamMessage } = useChat();
-
-  // Message State.
-  const [message, setMessage] = useState<PromptInputMessage>({
-    content: "",
-    files: [],
-  });
-  // Chat History Array.
-  // TODO: Do we actually need this if we already have the messages in the props?
-  const [chatHistory, setChatHistory] = useState<Array<AgnoMessage>>(messages || []);
-  // Loading State.
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Add the user message to the chat history.
-  const handleSendMessage = async (message: PromptInputMessage) => {
-    const newMessage = message;
-    // Reset the message state. (So we can see that there's no more text in the text area, without this the text area will still show the previous message).
-    setMessage({ content: "", files: [] });
-
-    // Start the loading state.
-    setIsLoading(true);
-
-    // Add the user message to the chat history.
-    setChatHistory((prev) => [
-      ...prev,
-      { role: "user", content: newMessage.content } as AgnoMessage,
-      { role: "assistant", content: "" } as AgnoMessage,
-    ]);
-
-    console.log("newMessage", newMessage);
-
-    // Placeholder for the assistant message.
-    let assistantMessage = "";
-
-    // Stream the response to the conversation with the given conversationId.
-    for await (const chunk of streamMessage(
-      newMessage.content,
-      conversationId || "",
-    )) {
-      assistantMessage += chunk || "";
-      // Update the assistant message in the chat history.
-      setChatHistory((prev) => {
-        // Create a new chat history array.
-        const newChatHistory = [...prev];
-        // Update the assistant message in the chat history.
-        // Info: Need to define all properties, so we satisfy the Typescript compiler, because using the spread operator (...) can sometimes result in optional properties being treated as undefined.
-        const newMessageIndex = newChatHistory.length - 1;
-        newChatHistory[newMessageIndex] = {
-          ...newChatHistory[newMessageIndex],
-          role: "assistant",
-          content: assistantMessage,
-        };
-        return newChatHistory;
-      });
-      // Stop the loading state. (We're already receiving the response, so we can stop the loading state).
-      setIsLoading(false);
-    }
-  };
-
+const ChatView = ({ message, isLoading, chatHistory, onSendMessage, onUpdateMessage }: ChatProps) => {
   return (
     <>
       <div className="overflow-hidden sm:max-w-[80%] lg:max-w-[60%] xl:max-w-[50%] mx-auto">
@@ -170,16 +91,14 @@ const ChatView = ({ conversationId, messages }: ChatProps) => {
           </Conversation>
           {/* Composer */}
           <PromptInput
-            onSubmit={(message) => handleSendMessage(message)}
+            onSubmit={onSendMessage}
             className="px-2 pb-2"
           >
             {/* Text Area */}
             <PromptInputTextarea
               placeholder="Ask anything about your memories or search the web..."
               className="pr-16 bg-white min-h-12.5"
-              onChange={(e) =>
-                setMessage({ ...message, content: e.currentTarget.value })
-              }
+              onChange={onUpdateMessage}
               value={message.content}
             />
             {/* Send Button */}
