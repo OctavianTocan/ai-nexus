@@ -1,3 +1,4 @@
+"use client";
 import type { AgnoMessage } from "@/lib/types";
 import ChatView from "./ChatView";
 import { useRef, useState } from "react";
@@ -15,7 +16,7 @@ interface ChatContainerProps {
 export default function ChatContainer({ conversationId, initialChatHistory }: ChatContainerProps) {
   // Chat Hook.
   const { streamMessage } = useChat();
-
+  // This ref is used to track whether we've already navigated to the conversation URL. We want to make sure that we only navigate once, when the user sends their first message, so that we don't mess with the browser history and cause issues with the back button.
   const hasNavigated = useRef(false);
 
   // Message State.
@@ -31,6 +32,7 @@ export default function ChatContainer({ conversationId, initialChatHistory }: Ch
 
   // Add the user message to the chat history.
   const handleSendMessage = async (message: PromptInputMessage) => {
+    // We navigate to the conversation URL when the user sends their first message, so that we have a unique URL for each conversation. This allows us to link messages to a specific conversation, and also allows users to share the conversation URL with others. We use replaceState instead of pushState, because we don't want to add a new entry to the browser history every time the user sends a message, we just want to replace the current entry with the new conversation URL.
     if (!hasNavigated.current) {
       window.history.replaceState(null, "", `/c/${conversationId}`);
       hasNavigated.current = true;
