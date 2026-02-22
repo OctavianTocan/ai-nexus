@@ -238,15 +238,15 @@ async def chat(
         user.id, session, conversation_id
     )
 
-    # We now make sure that we got something, and if we did not, then we create a new conversation. This allows us to use the same chat endpoint for both creating new conversations and sending messages to existing conversations.
+    # We now make sure that we got something, and if we did not, then we create a new conversation.
     if user_conversation is None:
-        # If no conversation_id is provided, create a new conversation.
-        conversation = await create_conversation_service(
-            user.id, session, ConversationCreate()
+        # Create a new conversation.
+        await create_conversation_service(
+            user.id, session, ConversationCreate(id=conversation_id)
         )
-        conversation_id = conversation.id
 
-    # Create to Agno agent. We use the conversation_id as the session_id for Agno, so that Agno can persist the messages and history for that conversation.
+    # Create to Agno agent. We use the conversation_id as the session_id for Agno,
+    # so that Agno can persist the messages and history for that conversation.
     agno_agent = Agent(
         name="Agno Agent",
         user_id=str(user.id),

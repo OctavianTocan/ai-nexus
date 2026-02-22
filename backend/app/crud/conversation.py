@@ -27,6 +27,7 @@ async def create_conversation_service(
     # - Generate title immediately using schema_data.title if provided?
     # - Use LLM to generate from first message in chat endpoint?
     new_conversation = Conversation(
+        id=schema_data.id,
         user_id=user_id,
         title="New Conversation",  # TODO: Replace with LLM-generated or schema_data.title,
         created_at=datetime.now(),
@@ -52,14 +53,14 @@ async def get_conversation_service(
 
     # Select the conversation by ID and user ID.
     # This already ensures that the conversation belongs to the user, because we're making sure that the user_id is the same as the user_id of the conversation.
-    conversationSelect = (
+    conversation_select = (
         select(Conversation)
         .where(Conversation.id == conversation_id)
         .where(Conversation.user_id == user_id)
     )
     # Execute the select statement and get the conversation.
-    conversationResult = await session.execute(conversationSelect)
-    return conversationResult.scalar_one_or_none()
+    conversation_result = await session.execute(conversation_select)
+    return conversation_result.scalar_one_or_none()
 
 
 async def get_conversations_for_user_service(
