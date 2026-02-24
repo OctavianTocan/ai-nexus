@@ -83,6 +83,40 @@ async def get_conversations_for_user_service(
     return list(conversationsResult.scalars().all())
 
 
+async def update_conversation_title_service(
+    title: str, user_id: uuid.UUID, conversation_id: uuid.UUID, session: AsyncSession
+) -> Conversation:
+    """
+    Update the title of a conversation.
+    Args:
+        title: The new title of the conversation.
+        conversation_id: The ID of the conversation to update.
+        session: The database session.
+    Returns:
+        The updated conversation.
+    """
+
+    # We first find the actual conversation that we want to update.
+    conversation_select = (
+        select(Conversation)
+        .where(Conversation.id == conversation_id)
+        .where(Conversation.user_id == user_id)
+    )
+    conversation_result = await session.execute(conversation_select)
+    conversation = conversation_result.scalar_one_or_none()
+    # If the conversation is not found, we return None.
+    if conversation is None:
+        return None
+    # We update the title and the updated_at timestamp.
+    conversation.title = title
+    conversation.updated_at = datetime.now()
+    # We add the conversation to the session and commit the changes.
+    session.add(conversation)
+    await session.commit()
+    await session.refresh(conversation)
+    return conversation
+
+
 # TODO: Implement function to get a single conversation by ID
 # async def get_conversation(
 #     session: AsyncSession,

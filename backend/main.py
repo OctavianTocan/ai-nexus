@@ -18,6 +18,7 @@ from app.crud.conversation import (
     create_conversation_service,
     get_conversation_service,
     get_conversations_for_user_service,
+    update_conversation_title_service,
 )
 from app.db import User, create_db_and_tables, get_async_session
 from app.models import Conversation
@@ -143,6 +144,43 @@ async def get_conversation(
     return None
 
 
+@app.post("/api/v1/conversations/{conversation_id}/title")
+async def generate_conversation_title(
+    conversation_id: uuid.UUID,
+    first_message: str = None,
+    user: User = Depends(current_active_user),
+    session: AsyncSession = Depends(get_async_session),
+) -> str:
+    """
+    Generate a conversation title.
+    Args:
+        conversation_id: The ID of the conversation to generate the title for.
+        first_message: The first message of the conversation.
+        user: The current active user.
+        session: The database session.
+    Returns:
+        The generated title.
+    """
+
+    agent = Agent(
+        model=Gemini(id="gemini-3-flash-preview"),
+    )
+    response = agent.run(
+        "Generate a title for the conversation based on the first message: "
+        + first_message
+    )
+
+    # Update the conversation title.
+    await update_conversation_title_service(
+        title=response.content,
+        user_id=user.id,
+        conversation_id=conversation_id,
+        session=session,
+    )
+    console.log(response.content)
+    return response.content
+
+
 @app.get("/api/v1/conversations")
 async def list_conversations(
     user: User = Depends(current_active_user),
@@ -172,8 +210,9 @@ async def list_conversations(
     ]
 
 
-@app.post("/api/v1/conversations")
+@app.post("/api/v1/conversations/{conversation_id}")
 async def create_conversation(
+    conversation_id: uuid.UUID,
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ) -> ConversationResponse:
@@ -187,7 +226,7 @@ async def create_conversation(
     """
 
     new_conversation: Conversation = await create_conversation_service(
-        user.id, session, ConversationCreate()
+        user.id, session, ConversationCreate(id=conversation_id)
     )
     # Return the conversation response.
     return ConversationResponse(
@@ -240,10 +279,7 @@ async def chat(
 
     # We now make sure that we got something, and if we did not, then we create a new conversation.
     if user_conversation is None:
-        # Create a new conversation.
-        await create_conversation_service(
-            user.id, session, ConversationCreate(id=conversation_id)
-        )
+        return None
 
     # Create to Agno agent. We use the conversation_id as the session_id for Agno,
     # so that Agno can persist the messages and history for that conversation.
@@ -286,4 +322,3 @@ async def chat(
             "X-Accel-Buffering": "no",
         },
     )
-    # TODO: Add endpoint to delete a conversation.

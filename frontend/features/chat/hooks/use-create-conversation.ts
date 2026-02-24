@@ -8,14 +8,14 @@ import { API_ENDPOINTS } from "@/lib/api";
  * @returns A function that creates a new conversation.
  * @returns The conversation ID.
  */
-export function useCreateConversation() {
+export function useCreateConversation(conversationId: string) {
   const fetcher = useAuthedFetch();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationKey: ["conversations"],
+    mutationKey: ["conversations", conversationId],
     mutationFn: async () => {
-      const response = await fetcher(API_ENDPOINTS.conversations.create, {
+      const response = await fetcher(API_ENDPOINTS.conversations.create(conversationId), {
         method: "POST",
         body: JSON.stringify({}),
         headers: {
@@ -25,7 +25,7 @@ export function useCreateConversation() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["conversations", conversationId] });
     },
   });
 }

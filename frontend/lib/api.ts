@@ -36,8 +36,14 @@ export const API_ENDPOINTS = {
          * Create a conversation.
          * @returns `/api/v1/conversations`
          */
-      create: "/api/v1/conversations",
+        create: (id: string) => `/api/v1/conversations/${id}`,
         list: "/api/v1/conversations",
+        /**
+         * Generate a conversation title.
+         * @param id - Conversation ID
+         * @returns `/api/v1/conversations/${id}/title`
+         */
+        generateTitle: (id: string, firstMessage: string) => `/api/v1/conversations/${id}/title?first_message=${firstMessage}`,
     },
     /** Endpoints for authentication actions */
     auth: {

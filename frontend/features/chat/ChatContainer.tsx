@@ -3,8 +3,10 @@ import type { AgnoMessage } from "@/lib/types";
 import ChatView from "./ChatView";
 import { useRef, useState } from "react";
 import { useChat } from "./hooks/use-chat";
+import { useCreateConversation } from "./hooks/use-create-conversation";
 import type { PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { useQueryClient } from "@tanstack/react-query";
+import { useGenerateConversationTitle } from "./hooks/use-generate-conversation-title";
 
 // TODO: Docstring
 interface ChatContainerProps {
@@ -17,6 +19,10 @@ interface ChatContainerProps {
 export default function ChatContainer({ conversationId, initialChatHistory }: ChatContainerProps) {
   // Chat Hook.
   const { streamMessage } = useChat();
+  // Create Conversation Hook.
+  const createConversationMutation = useCreateConversation(conversationId);
+  // Generate Conversation Title Hook.
+  const generateConversationTitleMutation = useGenerateConversationTitle(conversationId);
   // Query Client.
   const queryClient = useQueryClient();
   // This ref is used to track whether we've already navigated to the conversation URL. We want to make sure that we only navigate once, when the user sends their first message, so that we don't mess with the browser history and cause issues with the back button.
@@ -37,6 +43,12 @@ export default function ChatContainer({ conversationId, initialChatHistory }: Ch
   const handleSendMessage = async (message: PromptInputMessage) => {
     // We navigate to the conversation URL when the user sends their first message, so that we have a unique URL for each conversation. This allows us to link messages to a specific conversation, and also allows users to share the conversation URL with others. We use replaceState instead of pushState, because we don't want to add a new entry to the browser history every time the user sends a message, we just want to replace the current entry with the new conversation URL.
     if (!hasNavigated.current) {
+      // Create a new conversation in the database. (Ensuring we use the id we already have).
+      await createConversationMutation.mutateAsync();
+      // Start generating the conversation title. (We don't await this, because we want to continue the flow of the conversation, even if the title generation fails).
+      generateConversationTitleMutation.mutateAsync(message.content);
+
+      // Replace the current URL with the new conversation URL.
       window.history.replaceState(null, "", `/c/${conversationId}`);
       hasNavigated.current = true;
     }
