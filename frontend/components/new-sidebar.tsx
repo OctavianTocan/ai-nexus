@@ -1,20 +1,26 @@
+"use client";
 import { NavChats } from "./nav-chats";
 import { Separator } from "./ui/separator";
 import { Sidebar, SidebarContent, SidebarInset, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger } from "./ui/sidebar";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export function NewSidebar({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+
+  // Handle new conversation. We need to replace the current URL with the root URL, and then refresh the page to get the new conversation. (We don't use a link, because we want to avoid reloading the page and losing the chat history).
+  const handleNewConversation = () => {
+    window.history.replaceState(null, "", "/");
+    router.refresh();
+  }
+
   return (
     <SidebarProvider>
       <Sidebar variant="inset">
         <SidebarContent>
           {/* New Conversation Button */}
           <SidebarMenuItem>
-            <SidebarMenuButton>
-              {/* Using link for soft navigation. */}
-              <Link href={"/"}>
-                <span>New Conversation</span>
-              </Link>
+            <SidebarMenuButton className="cursor-pointer" onClick={handleNewConversation}>
+              <span>New Conversation</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           {/* Chat History */}
