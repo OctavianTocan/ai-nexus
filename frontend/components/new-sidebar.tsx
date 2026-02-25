@@ -4,13 +4,19 @@ import { Separator } from "./ui/separator";
 import { Sidebar, SidebarContent, SidebarInset, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger } from "./ui/sidebar";
 import { useRouter } from "next/navigation";
 
+/**
+ * Application sidebar layout wrapper.
+ *
+ * Renders the sidebar with a "New Conversation" button and conversation history,
+ * alongside the main content area with a sidebar toggle and header.
+ *
+ * @param children - The page content to render in the main area.
+ */
 export function NewSidebar({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
-  // Handle new conversation. We need to replace the current URL with the root URL, and then refresh the page to get the new conversation. (We don't use a link, because we want to avoid reloading the page and losing the chat history).
+  /** Navigates to the root page, which generates a fresh conversation UUID. */
   const handleNewConversation = () => {
-    // window.history.replaceState(null, "", "/");
-    // router.refresh();
     router.push("/");
   };
 
@@ -18,13 +24,11 @@ export function NewSidebar({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <Sidebar variant="inset">
         <SidebarContent>
-          {/* New Conversation Button */}
           <SidebarMenuItem>
             <SidebarMenuButton className="cursor-pointer" onClick={handleNewConversation}>
               <span>New Conversation</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          {/* Chat History */}
           <NavChats />
         </SidebarContent>
       </Sidebar>
@@ -38,7 +42,6 @@ export function NewSidebar({ children }: { children: React.ReactNode }) {
             />
           </div>
         </header>
-        {/* -- PAGE LAYOUT -- */}
         <div className="flex-1">
           {children}
         </div>

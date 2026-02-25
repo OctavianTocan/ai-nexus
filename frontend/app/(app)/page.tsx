@@ -1,7 +1,13 @@
 import ChatContainer from "@/features/chat/ChatContainer";
 
+/**
+ * Root conversation page (`/`).
+ *
+ * Generates a fresh UUID on each render so the {@link ChatContainer} starts
+ * with a blank slate. The `key` prop ensures React fully remounts the
+ * component when navigating back here from an existing conversation.
+ */
 export default async function ConversationPage() {
-  // The uuid we will use for the conversation if the user sends a message.
   const uuid: string = crypto.randomUUID();
 
   return (

@@ -20,34 +20,45 @@ import { Loader } from "../../components/ai-elements/loader";
 import { useStickToBottomContext } from "use-stick-to-bottom";
 import type { AgnoMessage } from "@/lib/types";
 
-/*
-  Props for the Chat component.
-  Args:
-    conversationId: The ID of the conversation to link messages to. (When not provided, we create a new conversation.)
-*/
+/**
+ * Props for the {@link ChatView} presentational component.
+ */
 type ChatProps = {
+  /** The current message being composed by the user. */
   message: PromptInputMessage;
-  // Whether the chat is currently loading a response. This is used to show a loading spinner in the UI while we're waiting for a response from the assistant.
+  /** Whether the assistant is generating a response (shows a loading indicator). */
   isLoading?: boolean;
-
+  /** Callback fired when the textarea content changes. */
   onUpdateMessage: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  /** Callback fired when the user submits a message. */
   onSendMessage: (message: PromptInputMessage) => void;
-
+  /** The full conversation history to render. */
   chatHistory: Array<AgnoMessage>;
 };
 
-// Scroll to bottom of the chat when the chat history changes.
+/**
+ * Invisible anchor component that scrolls the conversation to the bottom
+ * whenever `track` changes (i.e. when new messages are added).
+ *
+ * Must be rendered inside a `<Conversation>` that provides the
+ * `useStickToBottomContext`.
+ */
 const ChatScrollAnchor = ({ track }: { track: number }) => {
-  // Get the scroll to bottom context. (This works because the Conversation component is a child of the ConversationContent component, and that has the useStickToBottomContext hook.)
   const { scrollToBottom } = useStickToBottomContext();
 
-  // Scroll to bottom of the chat when the chat history changes.
   useEffect(() => {
     scrollToBottom();
   }, [track, scrollToBottom]);
   return null;
 };
 
+/**
+ * Presentational chat component.
+ *
+ * Renders the conversation history, a loading indicator while the assistant
+ * is thinking, and the message composer. All state management is handled by
+ * the parent {@link ChatContainer}.
+ */
 const ChatView = ({ message, isLoading, chatHistory, onSendMessage, onUpdateMessage }: ChatProps) => {
   return (
     <>
@@ -63,17 +74,13 @@ const ChatView = ({ message, isLoading, chatHistory, onSendMessage, onUpdateMess
                 </div>
               ) : (
                 <>
-                  {/* Chat History */}
-                  {chatHistory.map((message, index) => {
-                    return (
-                      <Message from={message.role} key={index}>
-                        <MessageContent>
-                          <MessageResponse>{message.content}</MessageResponse>
-                        </MessageContent>
-                      </Message>
-                    );
-                  })}
-                  {/* Loading Spinner */}
+                  {chatHistory.map((message, index) => (
+                    <Message from={message.role} key={index}>
+                      <MessageContent>
+                        <MessageResponse>{message.content}</MessageResponse>
+                      </MessageContent>
+                    </Message>
+                  ))}
                   {isLoading && (
                     <Message from="assistant">
                       <MessageContent>
@@ -89,19 +96,16 @@ const ChatView = ({ message, isLoading, chatHistory, onSendMessage, onUpdateMess
             </ConversationContent>
             <ChatScrollAnchor track={chatHistory.length} />
           </Conversation>
-          {/* Composer */}
           <PromptInput
             onSubmit={onSendMessage}
             className="px-2 pb-2"
           >
-            {/* Text Area */}
             <PromptInputTextarea
               placeholder="Ask anything about your memories or search the web..."
               className="pr-16 bg-white min-h-12.5"
               onChange={onUpdateMessage}
               value={message.content}
             />
-            {/* Send Button */}
             <PromptInputSubmit
               disabled={message.content.length === 0}
               className="absolute bottom-1 right-1 cursor-pointer"
@@ -114,5 +118,4 @@ const ChatView = ({ message, isLoading, chatHistory, onSendMessage, onUpdateMess
   );
 };
 
-// Export the Chat component.
 export default ChatView;
