@@ -9,8 +9,10 @@ export function NewSidebar({ children }: { children: React.ReactNode }) {
 
   // Handle new conversation. We need to replace the current URL with the root URL, and then refresh the page to get the new conversation. (We don't use a link, because we want to avoid reloading the page and losing the chat history).
   const handleNewConversation = () => {
-    window.history.replaceState(null, "", "/");
-    router.refresh();
+    // window.history.replaceState(null, "", "/");
+    // router.refresh();
+    // router.push("/");
+    window.location.href = "/";
   }
 
   return (

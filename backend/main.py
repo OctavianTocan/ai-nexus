@@ -108,7 +108,6 @@ async def get_conversation_messages(
         agent = Agent(db=agno_db)
         # Get the chat history for the conversation.
         chat_history = agent.get_chat_history(session_id=str(conversation_id))
-        print(chat_history)
         return chat_history
     except (ValueError, KeyError, AttributeError):
         return []
@@ -178,7 +177,6 @@ async def generate_conversation_title(
         conversation_id=conversation_id,
         session=session,
     )
-    print(response.content)
     return response.content
 
 

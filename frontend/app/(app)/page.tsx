@@ -6,7 +6,7 @@ export default async function ConversationPage() {
 
   return (
     <div>
-      <ChatContainer conversationId={uuid} />
+      <ChatContainer key={uuid} conversationId={uuid} />
     </div>
   );
 }

@@ -64,13 +64,11 @@ export function useChat() {
           try {
             // Parse the message as JSON.
             const json = JSON.parse(data);
-            console.log("Chat JSON Output", json);
 
             // Yield the delta content.
             yield json.type === "delta" ? json.content : null;
           } catch (error) {
             // Ignore errors for incomplete messages.
-            console.log("chat-client", error);
           }
         }
       }

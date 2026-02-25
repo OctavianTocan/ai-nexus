@@ -44,7 +44,6 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
             user: The user who was registered.
             request: The request object.
         """
-        print(f"User {user.id} has registered.")
 
     async def on_after_login(
         self,
@@ -59,7 +58,6 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
             request: The request object.
             response: The response object.
         """
-        print(f"User {user.id} has logged in.")
 
 
 async def get_user_manager(
