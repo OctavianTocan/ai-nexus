@@ -1,49 +1,43 @@
+"""
+Authentication and user management configuration.
+
+Uses fastapi-users with JWT tokens transported via HTTP-only cookies.
+"""
+
+import os
+import uuid
+from collections.abc import AsyncGenerator
+from typing import Optional, cast
+
+import dotenv
+from fastapi import Depends, Request, Response
+from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin
 from fastapi_users.authentication import (
     AuthenticationBackend,
     CookieTransport,
     JWTStrategy,
 )
-from fastapi_users import UUIDIDMixin, BaseUserManager, FastAPIUsers
-import os
-import uuid
-from typing import AsyncGenerator, Optional, cast
-from app.db import User, get_user_db
-from fastapi import Depends, Request, Response
 from fastapi_users.db import SQLAlchemyUserDatabase
 
-import dotenv
-
+from app.db import User, get_user_db
 
 dotenv.load_dotenv()
-# Get the secret from the environment variable. This is used to sign the JWT tokens.
+
 SECRET = os.environ.get("AUTH_SECRET")
 if not SECRET:
     raise RuntimeError("AUTH_SECRET environment variable is not set")
 
 
-# UserManager: Manages user creation, authentication, and password reset
 class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
-    """
-    This class manages user creation, authentication, and password reset.
-    Inherits from:
-        UUIDIDMixin: Mixin for UUID-based user IDs.
-        BaseUserManager[User, uuid.UUID]: Base class for user managers that handles password hashing and verification.
-    """
+    """Handles user lifecycle events (registration, login, password reset)."""
 
-    # The secret used to sign the reset password token.
     reset_password_token_secret = SECRET
-    # The secret used to sign the verification token.
     verification_token_secret = SECRET
 
     async def on_after_register(
         self, user: User, request: Optional[Request] = None
     ) -> None:
-        """
-        This function is called after a user is registered.
-        Args:
-            user: The user who was registered.
-            request: The request object.
-        """
+        """Hook called after a new user registers."""
 
     async def on_after_login(
         self,
@@ -51,30 +45,20 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
         request: Optional[Request] = None,
         response: Optional[Response] = None,
     ) -> None:
-        """
-        This function is called after a user logs in.
-        Args:
-            user: The user who logged in.
-            request: The request object.
-            response: The response object.
-        """
+        """Hook called after a user logs in."""
 
 
 async def get_user_manager(
     user_db: SQLAlchemyUserDatabase[User, uuid.UUID] = Depends(get_user_db),
 ) -> AsyncGenerator[UserManager, None]:
-    """
-    This function is a dependency that returns the user manager.
-    Args:
-        user_db: The user database.
-    Returns:
-        A UserManager instance.
-    """
+    """FastAPI dependency that yields a ``UserManager`` instance."""
     yield UserManager(user_db)
 
 
+# --- Transport & Strategy ---------------------------------------------------
+
 should_secure_cookie = os.environ.get("ENV") == "prod"
-# Transport: How the token is sent (Bearer header)
+
 cookie_transport = CookieTransport(
     cookie_name="session_token",
     cookie_httponly=True,
@@ -84,23 +68,22 @@ cookie_transport = CookieTransport(
 )
 
 
-# Strategy: How the token is created (JWT)
 def get_jwt_strategy() -> JWTStrategy:
+    """Create a JWT strategy with a 1-hour lifetime."""
     return JWTStrategy(secret=cast(str, SECRET), lifetime_seconds=3600)
 
 
-# Combine transport + strategy into an auth backend
 auth_backend = AuthenticationBackend(
     name="jwt",
     transport=cookie_transport,
     get_strategy=get_jwt_strategy,
 )
 
-# We use FastAPIUsers to manage users and authentication.
+# --- FastAPI-Users instance --------------------------------------------------
+
 fastapi_users = FastAPIUsers[User, uuid.UUID](
     get_user_manager,
     [auth_backend],
 )
 
-# Current active user: A dependency that returns the current active user.
 current_active_user = fastapi_users.current_user(active=True)

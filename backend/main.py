@@ -1,3 +1,9 @@
+"""
+FastAPI application entry point.
+
+Defines all API routes, configures middleware, and wires up authentication.
+"""
+
 import json
 import uuid
 from collections.abc import AsyncGenerator
@@ -32,27 +38,23 @@ from app.schemas import (
 )
 from app.users import auth_backend, current_active_user, fastapi_users
 
-# Load the environment variables.
 load_dotenv()
 
 
+# --- Lifespan ----------------------------------------------------------------
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """
-    This function is called when the FastAPI app starts and stops.
-    It creates the database tables and yields the app.
-    Args:
-        app: The FastAPI app.
-    Returns:
-        None.
-    """
+    """Run startup tasks (database table creation) before the app begins serving."""
     await create_db_and_tables()
     yield
 
 
-# Create the FastAPI app.
+# --- App & Middleware --------------------------------------------------------
+
 app = FastAPI(lifespan=lifespan)
-# Middleware. (We need this to allow the frontend to make requests to the backend).
+
+# TODO: Make CORS origins configurable via environment variable.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3001"],
@@ -61,26 +63,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# This includes the authentication routes.
+# --- Auth routes (provided by fastapi-users) ---------------------------------
+
 app.include_router(
     fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
 )
-# This includes the registration routes.
 app.include_router(
     fastapi_users.get_register_router(UserRead, UserCreate),
     prefix="/auth",
     tags=["auth"],
 )
-# This includes the user routes.
 app.include_router(
     fastapi_users.get_users_router(UserRead, UserUpdate),
     prefix="/users",
     tags=["users"],
 )
 
-# Create the Agno database.
+# --- Agno agent database -----------------------------------------------------
+
 agno_db = SqliteDb(db_file="agno.db")
 
+
+# --- Conversation endpoints --------------------------------------------------
 
 @app.get("/api/v1/conversations/{conversation_id}/messages")
 async def get_conversation_messages(
@@ -88,27 +92,19 @@ async def get_conversation_messages(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ) -> Optional[List[Message]]:
-    """
-    Get the messages for a conversation.
-    Args:
-        conversation_id: The ID of the conversation to get the messages for.
-        user: The current active user.
-    Returns:
-        Optional[List[Message]]: The list of messages for the conversation, or None if the conversation is not found.
-    """
+    """Return the message history for a conversation.
 
+    Verifies ownership first, then reads from the Agno database using the
+    conversation ID as the Agno session ID. Returns an empty list for new
+    conversations that have no messages yet.
+    """
     conversation = await get_conversation_service(user.id, session, conversation_id)
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
-    # Need the try/except so that we do not throw errors on new conversations.
     try:
-        # We instantiate the agent without a session_id.
-        # Because we're going to get the messages from the Agno database.
         agent = Agent(db=agno_db)
-        # Get the chat history for the conversation.
-        chat_history = agent.get_chat_history(session_id=str(conversation_id))
-        return chat_history
+        return agent.get_chat_history(session_id=str(conversation_id))
     except (ValueError, KeyError, AttributeError):
         return []
 
@@ -119,15 +115,7 @@ async def get_conversation(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ) -> Optional[ConversationResponse]:
-    """
-    Get a conversation by ID.
-    Args:
-        conversation_id: The ID of the conversation to get.
-        user: The current active user.
-        session: The database session.
-    Returns:
-        ConversationResponse: The response containing the conversation details.
-    """
+    """Return metadata for a single conversation."""
     conversation: Optional[Conversation] = await get_conversation_service(
         user.id, session, conversation_id
     )
@@ -139,7 +127,6 @@ async def get_conversation(
             created_at=conversation.created_at,
             updated_at=conversation.updated_at,
         )
-
     return None
 
 
@@ -150,17 +137,11 @@ async def generate_conversation_title(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ) -> str:
-    """
-    Generate a conversation title.
-    Args:
-        conversation_id: The ID of the conversation to generate the title for.
-        first_message: The first message of the conversation.
-        user: The current active user.
-        session: The database session.
-    Returns:
-        The generated title.
-    """
+    """Generate an LLM-based title for a conversation and persist it.
 
+    Uses the first user message as context for the Gemini model to produce
+    a short, descriptive title.
+    """
     agent = Agent(
         model=Gemini(id="gemini-3-flash-preview"),
     )
@@ -170,7 +151,6 @@ async def generate_conversation_title(
         + ". Return only the title, no other text or explanation.",
     )
 
-    # Update the conversation title.
     await update_conversation_title_service(
         title=response.content,
         user_id=user.id,
@@ -185,15 +165,7 @@ async def list_conversations(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ) -> List[ConversationResponse]:
-    """
-    List all conversations for the current user.
-    Args:
-        user: The current active user.
-        session: The database session.
-    Returns:
-        List[ConversationResponse]: The list of conversations for the current user.
-    """
-
+    """List all conversations for the authenticated user, most-recent first."""
     conversations: List[Conversation] = await get_conversations_for_user_service(
         user.id, session
     )
@@ -215,19 +187,15 @@ async def create_conversation(
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ) -> ConversationResponse:
-    """
-    Create a new conversation.
-    Returns:
-        ConversationResponse: The response containing the conversation details.
-        The response contains the conversation id, title, user id, created at, and updated at.
-    Architecture note: This creates a conversation in your database with a default title.
-    The actual title will be generated by LLM based on first message.
-    """
+    """Create a new conversation with a default title.
 
+    The ``conversation_id`` is provided as a path parameter because the
+    frontend pre-generates UUIDs before the first message is sent.
+    The title will be updated asynchronously via LLM title generation.
+    """
     new_conversation: Conversation = await create_conversation_service(
         user.id, session, ConversationCreate(id=conversation_id)
     )
-    # Return the conversation response.
     return ConversationResponse(
         title=new_conversation.title,
         id=new_conversation.id,
@@ -237,80 +205,59 @@ async def create_conversation(
     )
 
 
+# --- Chat endpoint -----------------------------------------------------------
+
 @app.post("/api/chat")
 async def chat(
     request: ChatRequest,
     user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ) -> StreamingResponse:
-    """
-    This endpoint is used to chat with the Agno agent.
-    Args:
-        request: The request to the chat API.
-        user: The current active user.
-    Returns:
-        A StreamingResponse object.
-        The StreamingResponse object contains response from the Agno agent.
-        The response is returned as a stream of events.
-        The events are returned as a JSON object with a "type" key and a "content" key.
-        The "type" key is either "delta" or "done".
+    """Stream an Agno agent response as Server-Sent Events.
 
-    Architecture Overview:
-    ------------------------
-    Your Database: Stores conversation metadata (title, user_id, id)
-    Agno Database: Stores actual messages and conversation history
-    Link: Use your Conversation.id as Agno's session_id
+    Architecture:
+        - Application DB stores conversation metadata (title, user_id, timestamps).
+        - Agno DB stores actual message content and history.
+        - They are linked by ``Conversation.id`` == Agno ``session_id``.
 
     Flow:
-    1. Frontend creates conversation via POST /api/v1/conversations
-    2. Frontend sends chat with conversation_id
-    3. Backend uses conversation_id as Agno's session_id
-    4. Agno persists messages with that session_id
-    5. Frontend can retrieve history via your API or Agno API
+        1. Frontend creates conversation via ``POST /api/v1/conversations``.
+        2. Frontend sends chat with ``conversation_id``.
+        3. Backend uses ``conversation_id`` as Agno's ``session_id``.
+        4. Agno persists messages under that session.
+
+    SSE payload format:
+        - ``{"type": "delta", "content": "..."}`` for each streamed chunk.
+        - ``[DONE]`` sentinel when the response is complete.
     """
-    # We assume that the frontend passed a valid conversation_id that belongs to the user.
     conversation_id = request.conversation_id
 
-    # We must first check if the conversationid provided exists and belongs to the user. This is important for security, so that users cannot access conversations that do not belong to them.
+    # Ownership check — ensure the conversation belongs to this user.
     user_conversation: Optional[Conversation] = await get_conversation_service(
         user.id, session, conversation_id
     )
-
-    # We now make sure that we got something, and if we did not, then we create a new conversation.
     if user_conversation is None:
         return None
 
-    # Create to Agno agent. We use the conversation_id as the session_id for Agno,
-    # so that Agno can persist the messages and history for that conversation.
     agno_agent = Agent(
         name="Agno Agent",
         user_id=str(user.id),
-        session_id=(str(conversation_id)),
-        # When updating this, apparently the server needs to be restarted (?)
+        session_id=str(conversation_id),
         model=Gemini(id="gemini-3-flash-preview"),
-        # Add a database to the Agent
         db=agno_db,
-        # Add to Agno MCP server to the Agent
         tools=[MCPTools(transport="streamable-http", url="https://docs.agno.com/mcp")],
-        # Add to previous session history to the context
         add_history_to_context=True,
         num_history_runs=3,
         markdown=True,
     )
 
     def event_stream():
-        """
-        Stream!
-        """
-        # Iterate Agno's streaming events
+        """Yield SSE-formatted chunks from the Agno agent."""
         for ev in agno_agent.run(request.question, stream=True):
             chunk = getattr(ev, "content", None)
             if chunk:
-                # Send a "delta" payload to the client
                 payload = {"type": "delta", "content": chunk}
                 yield f"data: {json.dumps(payload)}\n\n"
-
-        # Signal completion
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(

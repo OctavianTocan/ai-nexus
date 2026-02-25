@@ -1,3 +1,11 @@
+"""
+Database configuration and session management.
+
+Uses SQLAlchemy async engine with aiosqlite. The User model is defined here
+(rather than in models.py) because fastapi-users requires it at import time
+for its dependency chain.
+"""
+
 from collections.abc import AsyncGenerator
 
 from fastapi import Depends
@@ -5,46 +13,41 @@ from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
-# 1. Where is the database file?
 DATABASE_URL = "sqlite+aiosqlite:///./agno.db"
 
 
-# 2. Base class for all models
 class Base(DeclarativeBase):
+    """Base class for all SQLAlchemy ORM models."""
     pass
 
 
-# 3. The User table - inherits standard auth fields automatically:
-#    - id (UUID)
-#    - email (string, unique)
-#    - hashed_password (string)
-#    - is_active (bool)
-#    - is_superuser (bool)
-#    - is_verified (bool)
 class User(SQLAlchemyBaseUserTableUUID, Base):
+    """User model provided by fastapi-users (id, email, hashed_password, is_active, etc.)."""
     pass
 
 
-# 4. Create the database engine (connection pool)
 engine = create_async_engine(DATABASE_URL)
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 
-# 5. Function to create tables on startup
-async def create_db_and_tables():
-    # Imported here to avoid circular dependencies while ensuring all models are created in the table.
-    from . import models
+async def create_db_and_tables() -> None:
+    """Create all tables on application startup.
+
+    Imports app.models to ensure every ORM model is registered with
+    ``Base.metadata`` before issuing CREATE TABLE statements.
+    """
+    from . import models  # noqa: F401 — side-effect import to register models
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
 
-# 6. Dependency: Get a database session
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    """FastAPI dependency that yields an async database session."""
     async with async_session_maker() as session:
         yield session
 
 
-# 7. Dependency: Get a user database (for auth operations)
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+    """FastAPI dependency that yields a fastapi-users database adapter."""
     yield SQLAlchemyUserDatabase(session, User)
