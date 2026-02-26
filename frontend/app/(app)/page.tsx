@@ -8,11 +8,11 @@ import ChatContainer from "@/features/chat/ChatContainer";
  * component when navigating back here from an existing conversation.
  */
 export default async function ConversationPage() {
-  const uuid: string = crypto.randomUUID();
+	const uuid: string = crypto.randomUUID();
 
-  return (
-    <div>
-      <ChatContainer key={uuid} conversationId={uuid} />
-    </div>
-  );
+	return (
+		<div>
+			<ChatContainer key={uuid} conversationId={uuid} />
+		</div>
+	);
 }

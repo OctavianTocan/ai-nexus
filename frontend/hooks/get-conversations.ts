@@ -7,5 +7,8 @@ import { useAuthedQuery } from "./use-authed-query";
     @returns The conversations for the current user.
 */
 export default function useGetConversations() {
-    return useAuthedQuery<Conversation[]>(["conversations"], API_ENDPOINTS.conversations.list);
-};
+	return useAuthedQuery<Conversation[]>(
+		["conversations"],
+		API_ENDPOINTS.conversations.list,
+	);
+}

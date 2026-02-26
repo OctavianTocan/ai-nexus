@@ -9,7 +9,10 @@ import { useAuthedQuery } from "./use-authed-query";
     @returns The conversation.
 */
 export default function useGetConversation(conversationId: string) {
-    // Use the useAuthedQuery hook to fetch the conversation.
-    // We keep conversationId in the query key to ensure that conversations are cached separately and updated correctly when the ID changes.
-    return useAuthedQuery<Conversation>(["conversations", conversationId], API_ENDPOINTS.conversations.get(conversationId));
-};
+	// Use the useAuthedQuery hook to fetch the conversation.
+	// We keep conversationId in the query key to ensure that conversations are cached separately and updated correctly when the ID changes.
+	return useAuthedQuery<Conversation>(
+		["conversations", conversationId],
+		API_ENDPOINTS.conversations.get(conversationId),
+	);
+}
