@@ -39,10 +39,6 @@ install:
 tasks:
     bun run tasks.ts
 
-# One-time OAuth setup for Notion via MCPorter
-tasks-auth:
-    bunx mcporter auth notion
-
 # Remove build caches
 clean:
     rm -rf frontend/.next
