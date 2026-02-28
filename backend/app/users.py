@@ -4,12 +4,10 @@ Authentication and user management configuration.
 Uses fastapi-users with JWT tokens transported via HTTP-only cookies.
 """
 
-import os
 import uuid
 from collections.abc import AsyncGenerator
-from typing import Optional, cast
+from typing import Optional
 
-import dotenv
 from fastapi import Depends, Request, Response
 from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin
 from fastapi_users.authentication import (
@@ -19,20 +17,15 @@ from fastapi_users.authentication import (
 )
 from fastapi_users.db import SQLAlchemyUserDatabase
 
+from app.core.config import settings
 from app.db import User, get_user_db
-
-dotenv.load_dotenv()
-
-SECRET = os.environ.get("AUTH_SECRET")
-if not SECRET:
-    raise RuntimeError("AUTH_SECRET environment variable is not set")
 
 
 class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     """Handles user lifecycle events (registration, login, password reset)."""
 
-    reset_password_token_secret = SECRET
-    verification_token_secret = SECRET
+    reset_password_token_secret = settings.auth_secret
+    verification_token_secret = settings.auth_secret
 
     async def on_after_register(
         self, user: User, request: Optional[Request] = None
@@ -57,7 +50,9 @@ async def get_user_manager(
 
 # --- Transport & Strategy ---------------------------------------------------
 
-should_secure_cookie = os.environ.get("ENV") == "prod"
+should_secure_cookie = (
+    settings.is_production
+)  # Use secure cookies in production, but allow non-secure in development
 
 cookie_transport = CookieTransport(
     cookie_name="session_token",
@@ -70,7 +65,7 @@ cookie_transport = CookieTransport(
 
 def get_jwt_strategy() -> JWTStrategy:
     """Create a JWT strategy with a 1-hour lifetime."""
-    return JWTStrategy(secret=cast(str, SECRET), lifetime_seconds=3600)
+    return JWTStrategy(secret=cast(str, settings.auth_secret), lifetime_seconds=3600)
 
 
 auth_backend = AuthenticationBackend(

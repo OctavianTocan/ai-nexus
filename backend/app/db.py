@@ -13,20 +13,22 @@ from fastapi_users.db import SQLAlchemyBaseUserTableUUID, SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
-DATABASE_URL = "sqlite+aiosqlite:///./agno.db"
+from app.core.config import settings
 
 
 class Base(DeclarativeBase):
     """Base class for all SQLAlchemy ORM models."""
+
     pass
 
 
 class User(SQLAlchemyBaseUserTableUUID, Base):
     """User model provided by fastapi-users (id, email, hashed_password, is_active, etc.)."""
+
     pass
 
 
-engine = create_async_engine(DATABASE_URL)
+engine = create_async_engine(settings.db_url)
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 
