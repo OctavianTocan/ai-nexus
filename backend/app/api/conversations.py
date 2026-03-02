@@ -8,7 +8,6 @@ import uuid
 from agno.agent import Agent, Message
 from agno.models.google import Gemini
 from fastapi import Depends, HTTPException, APIRouter
-from main import agno_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import User
 from app.db import get_async_session
@@ -140,3 +139,5 @@ def get_conversations_router() -> APIRouter:
             created_at=new_conversation.created_at,
             updated_at=new_conversation.updated_at,
         )
+
+    return router
