@@ -14,7 +14,6 @@ from agno.agent import Agent, Message
 from agno.db.sqlite import SqliteDb
 from agno.models.google import Gemini
 from agno.tools.mcp import MCPTools
-from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -38,10 +37,8 @@ from app.schemas import (
 )
 from app.users import auth_backend, current_active_user, fastapi_users
 
-load_dotenv()
-
-
 # --- Lifespan ----------------------------------------------------------------
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -85,6 +82,7 @@ agno_db = SqliteDb(db_file="agno.db")
 
 
 # --- Conversation endpoints --------------------------------------------------
+
 
 @app.get("/api/v1/conversations/{conversation_id}/messages")
 async def get_conversation_messages(
@@ -206,6 +204,7 @@ async def create_conversation(
 
 
 # --- Chat endpoint -----------------------------------------------------------
+
 
 @app.post("/api/chat")
 async def chat(
