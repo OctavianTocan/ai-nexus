@@ -3,6 +3,7 @@ Application settings.
 """
 
 from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,6 +25,8 @@ class Settings(BaseSettings):
     auth_secret: str
     # The environment in which the application is running. Can be "dev" for development or "prod" for production.
     env: str = "dev"
+    # The API key for Google services.
+    google_api_key: str
 
     @property
     def is_production(self) -> bool:

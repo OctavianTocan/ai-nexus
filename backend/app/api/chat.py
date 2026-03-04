@@ -3,19 +3,17 @@ This module defines the API routes for chat-related operations.
 """
 
 import json
-from typing import Optional
+from typing import Any, Generator
 
-from agno.agent.agent import Agent
-from agno.models.google.gemini import Gemini
-from agno.tools.mcp.mcp import MCPTools
 from fastapi import Depends
+from fastapi.exceptions import HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.routing import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.agents import create_agent
 from app.crud.conversation import get_conversation_service
 from app.db import User, get_async_session
-from app.models import Conversation
 from app.schemas import ChatRequest
 from app.users import current_active_user
 
@@ -29,7 +27,7 @@ def get_chat_router() -> APIRouter:
         request: ChatRequest,
         user: User = Depends(current_active_user),
         session: AsyncSession = Depends(get_async_session),
-    ) -> Optional[StreamingResponse]:
+    ) -> StreamingResponse:
         """Stream an Agno agent response as Server-Sent Events.
 
         Architecture:
@@ -50,27 +48,15 @@ def get_chat_router() -> APIRouter:
         conversation_id = request.conversation_id
 
         # Ownership check — ensure the conversation belongs to this user.
-        user_conversation: Optional[Conversation] = await get_conversation_service(
+        user_conversation = await get_conversation_service(
             user.id, session, conversation_id
         )
         if user_conversation is None:
-            return None
+            raise HTTPException(status_code=404, detail="Conversation not found")
 
-        agno_agent = Agent(
-            name="Agno Agent",
-            user_id=str(user.id),
-            session_id=str(conversation_id),
-            model=Gemini(id="gemini-3-flash-preview"),
-            db=agno_db,
-            tools=[
-                MCPTools(transport="streamable-http", url="https://docs.agno.com/mcp")
-            ],
-            add_history_to_context=True,
-            num_history_runs=3,
-            markdown=True,
-        )
+        agno_agent = create_agent(user.id, conversation_id)
 
-        def event_stream():
+        def event_stream() -> Generator[str, Any, None]:
             """Yield SSE-formatted chunks from the Agno agent."""
             for ev in agno_agent.run(request.question, stream=True):
                 chunk = getattr(ev, "content", None)

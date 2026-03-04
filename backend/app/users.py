@@ -16,6 +16,7 @@ from fastapi_users.authentication import (
     JWTStrategy,
 )
 from fastapi_users.db import SQLAlchemyUserDatabase
+from typing_extensions import cast
 
 from app.core.config import settings
 from app.db import User, get_user_db

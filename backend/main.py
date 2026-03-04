@@ -7,7 +7,6 @@ Defines all API routes, configures middleware, and wires up authentication.
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from agno.db.sqlite import SqliteDb
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -76,7 +75,3 @@ def create_app() -> FastAPI:
 
 # Create the app instance.
 app = create_app()
-
-# --- Agno agent database -----------------------------------------------------
-
-agno_db = SqliteDb(db_file="agno.db")

@@ -1,14 +1,14 @@
 ---
 # ai-nexus-fxhs
 title: Extract chat endpoint and create agent factory
-status: todo
+status: completed
 type: task
 priority: high
 tags:
     - Sprint-A
     - backend
 created_at: 2026-02-27T16:09:27Z
-updated_at: 2026-03-04T10:01:49Z
+updated_at: 2026-03-04T23:44:48Z
 parent: ai-nexus-pva0
 ---
 
@@ -22,3 +22,7 @@ Create backend/app/api/chat.py and backend/app/core/agents.py. Move SSE streamin
 - Agent factory should support standalone testing with `if __name__ == "__main__":` pattern
 - Each agent module is self-contained: imports db, defines instructions, creates agent
 - Factory pattern needed (vs Agno's static singletons) because we create per-user/session agents
+
+## Summary of Changes
+
+Chat endpoint extracted to app/api/chat.py, agent factory created in app/core/agents.py with agno_db singleton and create_agent(user_id, conversation_id) function. Includes standalone __main__ test pattern. chat.py imports create_agent instead of constructing agents inline.
