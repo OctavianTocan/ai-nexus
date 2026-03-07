@@ -1,14 +1,14 @@
 ---
 # ai-nexus-9ntw
 title: Add ApiKey model with encryption
-status: todo
+status: in-progress
 type: task
 priority: high
 tags:
     - Sprint-A
     - backend
 created_at: 2026-02-27T16:09:33Z
-updated_at: 2026-03-07T21:46:38Z
+updated_at: 2026-03-07T21:47:27Z
 parent: ai-nexus-9ygz
 ---
 
