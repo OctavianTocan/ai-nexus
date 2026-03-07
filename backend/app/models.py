@@ -55,7 +55,7 @@ class UserPreferences(Base):
     __tablename__ = "user_preferences"
 
     user_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("user.id"), ondelete="CASCADE", primary_key=True
+        Uuid, ForeignKey("user.id", ondelete="CASCADE"), primary_key=True
     )
     custom_instructions: Mapped[str | None] = mapped_column(Text, nullable=True)
     accent_color: Mapped[str | None] = mapped_column(String(7), nullable=True)
