@@ -17,7 +17,8 @@ export const API_ENDPOINTS = {
 		 * Chat streaming endpoint.
 		 * @returns `/api/chat`
 		 */
-		messages: "/api/chat",
+		messages: "/api/v1/chat",
+		models: "/api/v1/models",
 	},
 	/** Endpoints for conversation management */
 	conversations: {

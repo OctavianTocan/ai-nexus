@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.chat import get_chat_router
 from app.api.conversations import get_conversations_router
+from app.api.models import get_models_router
 from app.db import create_db_and_tables
 from app.schemas import (
     UserCreate,
@@ -68,6 +69,9 @@ def create_app() -> FastAPI:
     )
     fastapi_app.include_router(
         get_chat_router(),
+    )
+    fastapi_app.include_router(
+        get_models_router(),
     )
 
     return fastapi_app

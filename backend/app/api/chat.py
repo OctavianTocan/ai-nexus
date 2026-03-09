@@ -22,7 +22,7 @@ def get_chat_router() -> APIRouter:
     # Create the router.
     router = APIRouter(prefix="/api/v1/chat", tags=["chat"])
 
-    @router.post("/api/chat")
+    @router.post("/")
     async def chat(
         request: ChatRequest,
         user: User = Depends(current_active_user),
