@@ -1,12 +1,13 @@
 "use client";
 
 import { IconCheck, IconChevronDown, IconX } from "@tabler/icons-react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useState } from "react";
 import {
 	Avatar,
 	AvatarFallback,
 	AvatarGroup,
+	AvatarGroupCount,
 	AvatarImage,
 } from "@/components/ui/avatar";
 
@@ -80,7 +81,7 @@ function DecisionPill({
 			<motion.button
 				type="button"
 				onClick={onReset}
-				className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400"
+				className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400"
 				/* Bounce in when transitioning to decided state */
 				initial={{ scale: 0.9 }}
 				animate={{ scale: 1 }}
@@ -98,7 +99,7 @@ function DecisionPill({
 			<motion.button
 				type="button"
 				onClick={onReset}
-				className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive"
+				className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive"
 				initial={{ scale: 0.9 }}
 				animate={{ scale: 1 }}
 				transition={BOUNCY_SPRING}
@@ -116,7 +117,7 @@ function DecisionPill({
 			<motion.button
 				type="button"
 				onClick={onApprove}
-				className="px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400"
+				className="cursor-pointer px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400"
 				whileTap={{ scale: 0.95 }}
 			>
 				Approve
@@ -126,7 +127,7 @@ function DecisionPill({
 			<motion.button
 				type="button"
 				onClick={onReject}
-				className="px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+				className="cursor-pointer px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
 				whileTap={{ scale: 0.95 }}
 			>
 				Reject
@@ -186,10 +187,14 @@ export type AccessRequestBannerProps = {
 /**
  * Collapsible notification banner for pending access requests.
  *
- * Collapsed state shows an avatar group, summary text, expand chevron,
- * and dismiss button. Expanded state reveals per-user rows with
- * approve/reject pill toggles. All transitions use bouncy spring animations
- * via Motion v12.
+ * Collapsed state shows an avatar group (max 2 real + count bubble),
+ * summary text, expand chevron, and dismiss button. Clicking anywhere
+ * on the collapsed bar toggles expansion.
+ *
+ * Expanded state swaps the summary text for "Access Requests" title
+ * and reveals per-user rows with approve/reject pill toggles.
+ * Avatars animate between collapsed and expanded positions using
+ * layout animations. All transitions use bouncy spring configs.
  *
  * @example
  * ```tsx
@@ -226,88 +231,156 @@ export function AccessRequestBanner({
 		setDecisions((prev) => ({ ...prev, [id]: "undecided" }));
 	};
 
+	/** Toggle expand, used by the entire collapsed bar click area. */
+	const toggleExpand = () => setIsExpanded((prev) => !prev);
+
 	/* Don't render anything if there are no requests */
 	if (requests.length === 0) return null;
 
+	/* Max 2 real avatars in collapsed bar; 3rd slot is the "+N" count */
+	const maxVisibleAvatars = 2;
+	const remainingCount = Math.max(0, requests.length - maxVisibleAvatars);
+	const visibleRequests = requests.slice(0, maxVisibleAvatars);
+
 	return (
-		<div className="w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-			{/* Collapsed bar: always visible regardless of expand state */}
-			<div className="flex items-center gap-3 px-4 py-3">
-				{/* Avatar stack showing up to 3 users to avoid visual clutter */}
-				<AvatarGroup>
-					{requests.slice(0, 3).map((r) => (
-						<Avatar key={r.id} size="sm">
-							{r.avatarUrl && <AvatarImage src={r.avatarUrl} alt={r.name} />}
-							<AvatarFallback>{getInitials(r.name)}</AvatarFallback>
-						</Avatar>
-					))}
-				</AvatarGroup>
-
-				{/* Summary text fills the middle, truncates on narrow screens */}
-				<span className="flex-1 truncate text-sm text-foreground">
-					{buildSummaryText(requests)}
-				</span>
-
-				{/* Chevron: rotates 180 degrees when expanded with bouncy spring */}
-				<motion.button
-					type="button"
-					onClick={() => setIsExpanded((prev) => !prev)}
-					className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-					animate={{ rotate: isExpanded ? 180 : 0 }}
-					transition={BOUNCY_SPRING}
-					aria-label={isExpanded ? "Collapse" : "Expand"}
+		<LayoutGroup>
+			<motion.div
+				layout
+				transition={EXPAND_SPRING}
+				className="w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm"
+			>
+				{/* Collapsed bar: clickable anywhere to toggle expand.
+				We use a div with role="button" instead of a <button> because this
+				container holds nested interactive elements (dismiss button).
+				Nesting <button> inside <button> is invalid HTML. */}
+				{/* biome-ignore lint/a11y/useSemanticElements: contains nested interactive children */}
+				<div
+					role="button"
+					tabIndex={0}
+					onClick={toggleExpand}
+					onKeyDown={(e) => {
+						if (e.key === "Enter" || e.key === " ") {
+							e.preventDefault();
+							toggleExpand();
+						}
+					}}
+					className="flex cursor-pointer items-center gap-3 px-4 py-3"
 				>
-					<IconChevronDown className="size-4" />
-				</motion.button>
+					{/* Avatar stack: max 2 real users + count bubble when 3+ requests */}
+					<AvatarGroup>
+						{visibleRequests.map((r) => (
+							<motion.div
+								key={r.id}
+								/* layoutId ties this avatar to the same one in the expanded list,
+								   so Motion can animate the position change between states */
+								layoutId={`avatar-${r.id}`}
+								transition={BOUNCY_SPRING}
+							>
+								<Avatar size="sm">
+									{r.avatarUrl && (
+										<AvatarImage src={r.avatarUrl} alt={r.name} />
+									)}
+									<AvatarFallback>{getInitials(r.name)}</AvatarFallback>
+								</Avatar>
+							</motion.div>
+						))}
+						{remainingCount > 0 && (
+							<AvatarGroupCount>
+								<span className="text-xs">+{remainingCount}</span>
+							</AvatarGroupCount>
+						)}
+					</AvatarGroup>
 
-				{/* Dismiss button removes the entire banner */}
-				<button
-					type="button"
-					onClick={onDismiss}
-					className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-					aria-label="Dismiss"
-				>
-					<IconX className="size-4" />
-				</button>
-			</div>
-
-			{/* Expanded list: animated height with staggered rows */}
-			<AnimatePresence>
-				{isExpanded && (
-					<motion.div
-						initial={{ height: 0, opacity: 0 }}
-						animate={{ height: "auto", opacity: 1 }}
-						exit={{ height: 0, opacity: 0 }}
-						transition={EXPAND_SPRING}
-						className="overflow-hidden"
-					>
-						{/* Top border to visually separate from collapsed bar */}
-						<div className="border-t border-border" />
-						<div className="py-1">
-							{requests.map((request, index) => (
-								<motion.div
-									key={request.id}
-									/* Stagger: each row slides in slightly after the previous */
-									initial={{ opacity: 0, y: -8 }}
+					{/* Animated text swap: summary text when collapsed, title when expanded */}
+					<div className="relative flex-1 overflow-hidden">
+						<AnimatePresence mode="wait">
+							{isExpanded ? (
+								<motion.span
+									key="title"
+									className="block text-sm font-semibold text-foreground"
+									initial={{ opacity: 0, y: 8 }}
 									animate={{ opacity: 1, y: 0 }}
-									transition={{
-										...BOUNCY_SPRING,
-										delay: index * 0.05,
-									}}
+									exit={{ opacity: 0, y: -8 }}
+									transition={{ duration: 0.15 }}
 								>
-									<AccessRequestRow
-										request={request}
-										decision={decisions[request.id] ?? "undecided"}
-										onApprove={() => handleApprove(request.id)}
-										onReject={() => handleReject(request.id)}
-										onReset={() => handleReset(request.id)}
-									/>
-								</motion.div>
-							))}
-						</div>
+									Access Requests
+								</motion.span>
+							) : (
+								<motion.span
+									key="summary"
+									className="block truncate text-sm text-foreground"
+									initial={{ opacity: 0, y: 8 }}
+									animate={{ opacity: 1, y: 0 }}
+									exit={{ opacity: 0, y: -8 }}
+									transition={{ duration: 0.15 }}
+								>
+									{buildSummaryText(requests)}
+								</motion.span>
+							)}
+						</AnimatePresence>
+					</div>
+
+					{/* Chevron: rotates 180 degrees when expanded with bouncy spring */}
+					<motion.div
+						animate={{ rotate: isExpanded ? 180 : 0 }}
+						transition={BOUNCY_SPRING}
+						className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+					>
+						<IconChevronDown className="size-4" />
 					</motion.div>
-				)}
-			</AnimatePresence>
-		</div>
+
+					{/* Dismiss button: stopPropagation so it doesn't trigger expand toggle */}
+					<button
+						type="button"
+						onClick={(e) => {
+							e.stopPropagation();
+							onDismiss?.();
+						}}
+						className="cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+						aria-label="Dismiss"
+					>
+						<IconX className="size-4" />
+					</button>
+				</div>
+
+				{/* Expanded list: animated height with staggered rows */}
+				<AnimatePresence>
+					{isExpanded && (
+						<motion.div
+							initial={{ height: 0, opacity: 0 }}
+							animate={{ height: "auto", opacity: 1 }}
+							exit={{ height: 0, opacity: 0 }}
+							transition={EXPAND_SPRING}
+							className="overflow-hidden"
+						>
+							{/* Top border to visually separate from collapsed bar */}
+							<div className="border-t border-border" />
+							<div className="py-1">
+								{requests.map((request, index) => (
+									<motion.div
+										key={request.id}
+										/* Stagger: each row slides in slightly after the previous */
+										initial={{ opacity: 0, y: -8 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{
+											...BOUNCY_SPRING,
+											delay: index * 0.05,
+										}}
+									>
+										<AccessRequestRow
+											request={request}
+											decision={decisions[request.id] ?? "undecided"}
+											onApprove={() => handleApprove(request.id)}
+											onReject={() => handleReject(request.id)}
+											onReset={() => handleReset(request.id)}
+										/>
+									</motion.div>
+								))}
+							</div>
+						</motion.div>
+					)}
+				</AnimatePresence>
+			</motion.div>
+		</LayoutGroup>
 	);
 }
