@@ -216,15 +216,15 @@ export function AccessRequestBanner({
 						>
 							<div className="border-t border-border" />
 							<div className="py-1">
-								{requests.map((request, index) => (
+								{requests.map((request) => (
 									<motion.div
 										key={request.id}
-										initial={{ opacity: 0, y: -8 }}
-										animate={{ opacity: 1, y: 0 }}
-										transition={{
-											...BOUNCY_SPRING,
-											delay: index * 0.05,
-										}}
+										/* All rows appear at once (no stagger).
+										   Names bounce-scale from small to full size,
+										   pills scale up with a slight bounce. */
+										initial={{ opacity: 0 }}
+										animate={{ opacity: 1 }}
+										transition={{ duration: 0.15 }}
 										className="flex items-center justify-between gap-3 px-4 py-2"
 									>
 										<div className="flex items-center gap-3">
@@ -246,17 +246,30 @@ export function AccessRequestBanner({
 													</AvatarFallback>
 												</Avatar>
 											</motion.div>
-											<span className="text-sm font-medium">
+											{/* Name bounces in via scale for a playful feel */}
+											<motion.span
+												className="text-sm font-medium"
+												initial={{ scale: 0.7, opacity: 0 }}
+												animate={{ scale: 1, opacity: 1 }}
+												transition={BOUNCY_SPRING}
+											>
 												{request.name}
-											</span>
+											</motion.span>
 										</div>
-										<DecisionPill
-											pillId={request.id}
-											decision={decisions[request.id] ?? "undecided"}
-											onApprove={() => handleApprove(request.id)}
-											onReject={() => handleReject(request.id)}
-											onReset={() => handleReset(request.id)}
-										/>
+										{/* Pill scales up with bounce to draw attention */}
+										<motion.div
+											initial={{ scale: 0.85, opacity: 0 }}
+											animate={{ scale: 1, opacity: 1 }}
+											transition={BOUNCY_SPRING}
+										>
+											<DecisionPill
+												pillId={request.id}
+												decision={decisions[request.id] ?? "undecided"}
+												onApprove={() => handleApprove(request.id)}
+												onReject={() => handleReject(request.id)}
+												onReset={() => handleReset(request.id)}
+											/>
+										</motion.div>
 									</motion.div>
 								))}
 							</div>
