@@ -146,18 +146,26 @@ export function AccessRequestBanner({
 						</AvatarGroup>
 					)}
 
-					{/* Text area: bouncy crossfade between summary and title.
-					   Uses spring for enter (bouncy) and quick tween for exit
-					   so the outgoing text gets out of the way fast. */}
-					<div className="relative min-w-0 flex-1">
+					{/* Text area: crossfade between summary and title.
+					   "Access Requests" bounces from scale-0 at top-left origin.
+					   Summary text bounces back from top while scaling up from small.
+					   Exit is quick so outgoing text clears the way fast. */}
+					<div className="relative min-w-0 flex-1 overflow-hidden">
 						<AnimatePresence mode="wait" initial={false}>
 							{isExpanded ? (
 								<motion.div
 									key="title"
-									initial={{ opacity: 0, y: 10 }}
-									animate={{ opacity: 1, y: 0 }}
-									exit={{ opacity: 0, y: -6, transition: { duration: 0.1 } }}
+									/* Bounce from zero scale at top-left corner */
+									initial={{ opacity: 0, scale: 0, y: -4 }}
+									animate={{ opacity: 1, scale: 1, y: 0 }}
+									exit={{
+										opacity: 0,
+										scale: 0,
+										y: -4,
+										transition: { duration: 0.12 },
+									}}
 									transition={BOUNCY_SPRING}
+									style={{ transformOrigin: "top left" }}
 								>
 									<span className="text-sm font-semibold text-foreground">
 										Access Requests
@@ -166,10 +174,17 @@ export function AccessRequestBanner({
 							) : (
 								<motion.div
 									key="summary"
-									initial={{ opacity: 0, y: 10 }}
-									animate={{ opacity: 1, y: 0 }}
-									exit={{ opacity: 0, y: -6, transition: { duration: 0.1 } }}
+									/* Bounce in from top while scaling up from small */
+									initial={{ opacity: 0, scale: 0.7, y: -10 }}
+									animate={{ opacity: 1, scale: 1, y: 0 }}
+									exit={{
+										opacity: 0,
+										scale: 0.7,
+										y: -10,
+										transition: { duration: 0.12 },
+									}}
 									transition={BOUNCY_SPRING}
+									style={{ transformOrigin: "top left" }}
 									/* Allow wrapping up to 2 lines for narrow widths */
 									className="line-clamp-2"
 								>
