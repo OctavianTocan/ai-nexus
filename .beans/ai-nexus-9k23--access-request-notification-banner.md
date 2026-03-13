@@ -5,7 +5,7 @@ status: in-progress
 type: feature
 priority: normal
 created_at: 2026-03-13T05:38:38Z
-updated_at: 2026-03-13T05:40:31Z
+updated_at: 2026-03-13T05:41:24Z
 ---
 
 Collapsible notification banner with animated expand/collapse, avatar group, approve/reject pill toggles per user. Motion v12 bouncy springs.
@@ -15,4 +15,4 @@ Collapsible notification banner with animated expand/collapse, avatar group, app
 - [x] Type-check and lint pass
 - [x] Create dev route at /dev/access-requests with mock data
 - [ ] Visual testing on dev server
-- [ ] Commit
+- [x] Commit
