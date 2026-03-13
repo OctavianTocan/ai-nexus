@@ -146,26 +146,27 @@ export function AccessRequestBanner({
 						</AvatarGroup>
 					)}
 
-					{/* Text area: crossfade between summary and title.
-					   Both items are absolutely positioned so transforms
-					   don't affect layout or push siblings around.
-					   Uniform scale + slight y shift gives a "grow into place" feel. */}
+					{/* Text area: gentle crossfade between summary and title.
+					   Absolutely positioned to avoid layout shifts.
+					   Subtle scale (0.94 -> 1) with a soft spring, not bouncy. */}
 					<div className="relative min-h-[1.25rem] min-w-0 flex-1">
 						<AnimatePresence mode="wait" initial={false}>
 							{isExpanded ? (
 								<motion.div
 									key="title"
 									className="absolute inset-0"
-									initial={{ opacity: 0, scale: 0.5, y: -4 }}
-									animate={{ opacity: 1, scale: 1, y: 0 }}
+									initial={{ opacity: 0, scale: 0.94 }}
+									animate={{ opacity: 1, scale: 1 }}
 									exit={{
 										opacity: 0,
-										scale: 0.5,
-										y: -4,
+										scale: 0.94,
 										transition: { duration: 0.1 },
 									}}
-									transition={BOUNCY_SPRING}
-									style={{ transformOrigin: "top center" }}
+									transition={{
+										type: "spring",
+										stiffness: 400,
+										damping: 30,
+									}}
 								>
 									<span className="text-sm font-semibold text-foreground">
 										Access Requests
@@ -175,16 +176,18 @@ export function AccessRequestBanner({
 								<motion.div
 									key="summary"
 									className="absolute inset-0 line-clamp-2"
-									initial={{ opacity: 0, scale: 0.5, y: -4 }}
-									animate={{ opacity: 1, scale: 1, y: 0 }}
+									initial={{ opacity: 0, scale: 0.94 }}
+									animate={{ opacity: 1, scale: 1 }}
 									exit={{
 										opacity: 0,
-										scale: 0.5,
-										y: -4,
+										scale: 0.94,
 										transition: { duration: 0.1 },
 									}}
-									transition={BOUNCY_SPRING}
-									style={{ transformOrigin: "top center" }}
+									transition={{
+										type: "spring",
+										stiffness: 400,
+										damping: 30,
+									}}
 								>
 									<SummaryText requests={requests} />
 								</motion.div>
