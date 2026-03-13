@@ -34,8 +34,7 @@ const MAX_COLLAPSED_AVATARS = 2;
  * positions using shared `layoutId`. Per-user rows with sliding
  * approve/reject pill toggles stagger in.
  *
- * Avatars stack left-to-right (leftmost on top) using flex-direction
- * row-reverse on the group container.
+ * Avatars stack left-to-right (leftmost on top) using z-index ordering.
  *
  * @example
  * ```tsx
@@ -56,6 +55,10 @@ export function AccessRequestBanner({
 	const [isExpanded, setIsExpanded] = useState(false);
 	/* Track decisions locally so the banner can show decided state inline */
 	const [decisions, setDecisions] = useState<Record<string, Decision>>({});
+	/* Incrementing key forces AnimatePresence to re-mount the expanded list
+	   on every toggle, so initial/animate always fires (not just first time).
+	   See motion-patterns.md: "AnimatePresence Gotcha: Re-animation" */
+	const [expandKey, setExpandKey] = useState(0);
 
 	const handleApprove = (id: string) => {
 		setDecisions((prev) => ({ ...prev, [id]: "approved" }));
@@ -71,7 +74,16 @@ export function AccessRequestBanner({
 		setDecisions((prev) => ({ ...prev, [id]: "undecided" }));
 	};
 
-	const toggleExpand = () => setIsExpanded((prev) => !prev);
+	const toggleExpand = () => {
+		setIsExpanded((prev) => {
+			if (!prev) {
+				/* Bump key on every expand so AnimatePresence re-mounts children,
+				   triggering fresh initial -> animate on the staggered rows */
+				setExpandKey((k) => k + 1);
+			}
+			return !prev;
+		});
+	};
 
 	if (requests.length === 0) return null;
 
@@ -101,18 +113,24 @@ export function AccessRequestBanner({
 					}}
 					className="flex cursor-pointer items-center gap-3 px-4 py-3"
 				>
-					{/* Collapsed avatars: only shown when NOT expanded,
-					    because expanded rows contain their own avatars with
-					    matching layoutIds for the shared position animation */}
+					{/* Collapsed avatars: only rendered when NOT expanded.
+					    When expanded, the rows contain avatars with matching layoutIds,
+					    so Motion animates avatars bouncing from header into rows.
+					    Avatars use descending z-index so leftmost is visually on top.
+					    Using default size (size-8) so they match multi-line text height. */}
 					{!isExpanded && (
-						<AvatarGroup className="flex-row-reverse">
-							{collapsedAvatars.map((r) => (
+						<AvatarGroup>
+							{collapsedAvatars.map((r, i) => (
 								<motion.div
 									key={r.id}
 									layoutId={`avatar-${r.id}`}
 									transition={BOUNCY_SPRING}
+									/* Leftmost avatar gets highest z-index so it stacks on top */
+									style={{
+										zIndex: collapsedAvatars.length - i + 1,
+									}}
 								>
-									<Avatar size="sm">
+									<Avatar>
 										{r.avatarUrl && (
 											<AvatarImage src={r.avatarUrl} alt={r.name} />
 										)}
@@ -182,10 +200,12 @@ export function AccessRequestBanner({
 					</button>
 				</div>
 
-				{/* Expanded user list */}
+				{/* Expanded user list: key changes on every expand to force
+				    AnimatePresence to re-mount, giving fresh stagger animations */}
 				<AnimatePresence>
 					{isExpanded && (
 						<motion.div
+							key={expandKey}
 							initial={{ height: 0, opacity: 0 }}
 							animate={{ height: "auto", opacity: 1 }}
 							exit={{ height: 0, opacity: 0 }}
@@ -206,8 +226,8 @@ export function AccessRequestBanner({
 										className="flex items-center justify-between gap-3 px-4 py-2"
 									>
 										<div className="flex items-center gap-3">
-											{/* layoutId matches the collapsed avatar so it
-											    bounces from the header into this row position */}
+											{/* layoutId matches the collapsed avatar so Motion
+											    bounces it from the header into this row position */}
 											<motion.div
 												layoutId={`avatar-${request.id}`}
 												transition={BOUNCY_SPRING}

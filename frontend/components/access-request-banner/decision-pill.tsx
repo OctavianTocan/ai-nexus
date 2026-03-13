@@ -7,17 +7,18 @@ import { BOUNCY_SPRING, type Decision } from "./types";
 /**
  * Sliding pill toggle for approve/reject decisions.
  *
- * Uses a sliding highlight indicator that animates between "Approve"
- * and "Reject" positions. Clicking the active side again resets to
- * undecided. The sliding indicator uses layoutId for smooth position
- * animation.
+ * A pill container with two sides. A sliding highlight indicator
+ * animates between the two positions when a decision is made.
+ * Uses neutral colors (muted/foreground) instead of semantic
+ * green/red to avoid a cheap look. Clicking the active side
+ * resets to undecided (reversible).
  */
 export function DecisionPill({
 	decision,
 	onApprove,
 	onReject,
 	onReset,
-	/** Unique ID used to scope the layoutId so multiple pills don't conflict */
+	/** Unique ID to scope the layoutId so multiple pills don't conflict */
 	pillId,
 }: {
 	decision: Decision;
@@ -32,14 +33,13 @@ export function DecisionPill({
 
 	return (
 		<div className="relative inline-flex items-center overflow-hidden rounded-full border border-border">
-			{/* Sliding highlight indicator that moves between approve/reject */}
+			{/* Sliding highlight: animates between left/right halves via layoutId.
+			    Uses subtle muted background instead of green/red. */}
 			{isDecided && (
 				<motion.div
 					layoutId={`pill-highlight-${pillId}`}
-					className={`absolute inset-y-0 w-1/2 rounded-full ${
-						isApproved
-							? "left-0 bg-emerald-500/15"
-							: "left-1/2 bg-destructive/10"
+					className={`absolute inset-y-0 w-1/2 rounded-full bg-muted ${
+						isApproved ? "left-0" : "left-1/2"
 					}`}
 					transition={BOUNCY_SPRING}
 				/>
@@ -51,8 +51,8 @@ export function DecisionPill({
 				onClick={isApproved ? onReset : onApprove}
 				className={`relative z-10 flex cursor-pointer items-center gap-1 px-3 py-1 text-xs font-medium transition-colors ${
 					isApproved
-						? "text-emerald-600 dark:text-emerald-400"
-						: "text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400"
+						? "text-foreground"
+						: "text-muted-foreground hover:text-foreground"
 				}`}
 				whileTap={{ scale: 0.95 }}
 			>
@@ -60,7 +60,7 @@ export function DecisionPill({
 				{isApproved ? "Approved" : "Approve"}
 			</motion.button>
 
-			{/* Divider: hidden when a decision is made since highlight covers it */}
+			{/* Divider: hidden when decided since the highlight covers it */}
 			{!isDecided && <div className="h-4 w-px bg-border" />}
 
 			{/* Reject side */}
@@ -69,8 +69,8 @@ export function DecisionPill({
 				onClick={isRejected ? onReset : onReject}
 				className={`relative z-10 flex cursor-pointer items-center gap-1 px-3 py-1 text-xs font-medium transition-colors ${
 					isRejected
-						? "text-destructive"
-						: "text-muted-foreground hover:text-destructive"
+						? "text-foreground"
+						: "text-muted-foreground hover:text-foreground"
 				}`}
 				whileTap={{ scale: 0.95 }}
 			>
