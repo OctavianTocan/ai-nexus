@@ -1,48 +1,86 @@
 "use client";
 
-import { IconChevronDown, IconX } from "@tabler/icons-react";
-import { AnimatePresence, LayoutGroup, motion } from "motion/react";
-import { useState } from "react";
-import {
-	Avatar,
-	AvatarFallback,
-	AvatarGroup,
-	AvatarGroupCount,
-	AvatarImage,
-} from "@/components/ui/avatar";
-import { DecisionPill } from "./decision-pill";
-import { SummaryText } from "./summary-text";
-import {
-	type AccessRequestBannerProps,
-	BOUNCY_SPRING,
-	type Decision,
-	EXPAND_SPRING,
-	getInitials,
-} from "./types";
+import { useReducer, useState } from "react";
+import { AccessRequestBannerView } from "./access-request-banner-view";
+import type { AccessRequestBannerProps, BannerState, Decision } from "./types";
 
-/** Max real avatars shown in collapsed bar; rest become "+N" count */
+/** Max real avatars shown in the collapsed bar before collapsing into "+N". */
 const MAX_COLLAPSED_AVATARS = 2;
 
+// ---------------------------------------------------------------------------
+// Internal banner state machine
+// ---------------------------------------------------------------------------
+
 /**
- * Collapsible notification banner for pending access requests.
+ * Internal state that the Component layer uses to track banner open/close.
  *
- * **Collapsed:** avatar group (max 2 real + count bubble), highlighted
- * summary text, bouncy chevron, dismiss button. Click anywhere to expand.
+ * Extends the public {@link BannerState} by adding `nextExpandKey` to the
+ * `collapsed` variant. This is an implementation detail — the View never
+ * sees it. It exists because:
+ * - `expandKey` belongs on `expanded` (it is only meaningful when the list
+ *   is visible and must change on every open).
+ * - When collapsing, we pre-compute `nextExpandKey = expandKey + 1` so the
+ *   reducer can produce a new key on the next expand without any external
+ *   counter or ref.
+ * - This keeps the entire state machine self-contained in one `useReducer`.
+ */
+type InternalBannerState =
+	| { status: "collapsed"; nextExpandKey: number }
+	| { status: "expanded"; expandKey: number };
+
+/**
+ * Pure state transition for the banner toggle.
  *
- * **Expanded:** "Access Requests" title replaces summary text (crossfade),
- * avatars animate from their collapsed position into their expanded row
- * positions using shared `layoutId`. Per-user rows with sliding
- * approve/reject pill toggles stagger in.
+ * - `collapsed → expanded`: promote `nextExpandKey` to the active key.
+ * - `expanded → collapsed`: store `expandKey + 1` as the next key, ready
+ *   for the following open.
  *
- * Avatars stack left-to-right (leftmost on top) using z-index ordering.
+ * No action payload is needed — toggle is the only transition.
+ */
+function reduceBannerState(state: InternalBannerState): InternalBannerState {
+	if (state.status === "collapsed") {
+		return { status: "expanded", expandKey: state.nextExpandKey };
+	}
+	return { status: "collapsed", nextExpandKey: state.expandKey + 1 };
+}
+
+/** Strip internal fields before handing state to the View layer. */
+function toBannerState(state: InternalBannerState): BannerState {
+	if (state.status === "expanded") {
+		return state;
+	}
+	return { status: "collapsed" };
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
+/**
+ * Stateful Component layer for the access-request banner.
+ *
+ * **Responsibilities (Component layer):**
+ * - Own all local state: `bannerState` (via reducer), `decisions`.
+ * - Derive computed values from props (`collapsedAvatars`, `remainingCount`).
+ * - Wire user interactions to state transitions and optional external callbacks.
+ * - Render nothing when there are no pending requests.
+ * - Delegate all presentation to {@link AccessRequestBannerView}.
+ *
+ * **Why separate Component from View?**
+ * - The View is a pure function of props — trivially testable and previewable
+ *   in isolation (e.g., Storybook) without needing to mock React state.
+ * - This Component can be unit-tested by asserting what props it passes down,
+ *   without mounting any DOM.
+ * - If the banner ever needs server-driven state (e.g., optimistic mutations),
+ *   only this file changes; the View stays untouched.
  *
  * @example
  * ```tsx
  * <AccessRequestBanner
  *   requests={[{ id: "1", name: "Octavian Tocan" }]}
- *   onApprove={(id) => console.log("approved", id)}
- *   onReject={(id) => console.log("rejected", id)}
- *   onDismiss={() => console.log("dismissed")}
+ *   onApprove={(id) => mutate({ id, action: "approve" })}
+ *   onReject={(id) => mutate({ id, action: "reject" })}
+ *   onDismiss={() => setVisible(false)}
  * />
  * ```
  */
@@ -52,253 +90,64 @@ export function AccessRequestBanner({
 	onReject,
 	onDismiss,
 }: AccessRequestBannerProps) {
-	const [isExpanded, setIsExpanded] = useState(false);
-	/* Track decisions locally so the banner can show decided state inline */
-	const [decisions, setDecisions] = useState<Record<string, Decision>>({});
-	/* Incrementing key forces AnimatePresence to re-mount the expanded list
-	   on every toggle, so initial/animate always fires (not just first time).
-	   See motion-patterns.md: "AnimatePresence Gotcha: Re-animation" */
-	const [expandKey, setExpandKey] = useState(0);
+	/**
+	 * Banner expand/collapse state machine.
+	 * Uses `InternalBannerState` (not the public `BannerState`) so the reducer
+	 * can pre-compute `nextExpandKey` on collapse without any external counter.
+	 * `nextExpandKey: 1` means the first expand gets key `1`.
+	 */
+	const [internalBannerState, dispatchBannerToggle] = useReducer(
+		reduceBannerState,
+		{ status: "collapsed", nextExpandKey: 1 },
+	);
 
+	/**
+	 * Local decision map keeps the banner's UI in sync immediately,
+	 * even before an optimistic server mutation resolves.
+	 * The parent's `onApprove` / `onReject` callbacks handle persistence.
+	 */
+	const [decisions, setDecisions] = useState<Record<string, Decision>>({});
+
+	/** Optimistically marks a request as approved locally, then notifies the parent. */
 	const handleApprove = (id: string) => {
 		setDecisions((prev) => ({ ...prev, [id]: "approved" }));
 		onApprove?.(id);
 	};
 
+	/** Optimistically marks a request as rejected locally, then notifies the parent. */
 	const handleReject = (id: string) => {
 		setDecisions((prev) => ({ ...prev, [id]: "rejected" }));
 		onReject?.(id);
 	};
 
+	/**
+	 * Reverts a decision back to undecided — allows the user to change
+	 * their mind before a final submission action is triggered.
+	 * No external callback needed because the parent hasn't been notified yet.
+	 */
 	const handleReset = (id: string) => {
 		setDecisions((prev) => ({ ...prev, [id]: "undecided" }));
 	};
 
-	const toggleExpand = () => {
-		setIsExpanded((prev) => {
-			if (!prev) {
-				/* Bump key on every expand so AnimatePresence re-mounts children,
-				   triggering fresh initial -> animate on the staggered rows */
-				setExpandKey((k) => k + 1);
-			}
-			return !prev;
-		});
-	};
-
+	// Nothing to show — bail before rendering anything.
 	if (requests.length === 0) return null;
 
-	const remainingCount = Math.max(0, requests.length - MAX_COLLAPSED_AVATARS);
+	// Precomputed for the View so it doesn't repeat slice/max logic.
 	const collapsedAvatars = requests.slice(0, MAX_COLLAPSED_AVATARS);
+	const remainingCount = Math.max(0, requests.length - MAX_COLLAPSED_AVATARS);
 
 	return (
-		<LayoutGroup>
-			<motion.div
-				layout
-				transition={EXPAND_SPRING}
-				className="w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm"
-			>
-				{/* Header bar: clickable anywhere to toggle expand.
-				    Uses div+role="button" because it contains nested interactive
-				    children (dismiss button). Nesting <button> in <button> is invalid. */}
-				{/* biome-ignore lint/a11y/useSemanticElements: contains nested interactive children */}
-				<div
-					role="button"
-					tabIndex={0}
-					onClick={toggleExpand}
-					onKeyDown={(e) => {
-						if (e.key === "Enter" || e.key === " ") {
-							e.preventDefault();
-							toggleExpand();
-						}
-					}}
-					className="flex cursor-pointer items-center gap-3 px-4 py-3"
-				>
-					{/* Collapsed avatars: only rendered when NOT expanded.
-					    When expanded, the rows contain avatars with matching layoutIds,
-					    so Motion animates avatars bouncing from header into rows.
-					    Avatars use descending z-index so leftmost is visually on top.
-					    Using default size (size-8) so they match multi-line text height. */}
-					{!isExpanded && (
-						<AvatarGroup>
-							{collapsedAvatars.map((r, i) => (
-								<motion.div
-									key={r.id}
-									layoutId={`avatar-${r.id}`}
-									transition={BOUNCY_SPRING}
-									/* Leftmost avatar gets highest z-index so it stacks on top */
-									style={{
-										zIndex: collapsedAvatars.length - i + 1,
-									}}
-								>
-									<Avatar>
-										{r.avatarUrl && (
-											<AvatarImage src={r.avatarUrl} alt={r.name} />
-										)}
-										<AvatarFallback>{getInitials(r.name)}</AvatarFallback>
-									</Avatar>
-								</motion.div>
-							))}
-							{remainingCount > 0 && (
-								<AvatarGroupCount>
-									<span className="text-xs">+{remainingCount}</span>
-								</AvatarGroupCount>
-							)}
-						</AvatarGroup>
-					)}
-
-					{/* Text area: text enters from outside the card (y offset + small scale)
-					   and exits back out. "Access Requests" drops in from above,
-					   summary rises in from below. Clip with overflow-hidden. */}
-					<div className="relative min-h-[1.25rem] min-w-0 flex-1 overflow-hidden">
-						<AnimatePresence mode="wait" initial={false}>
-							{isExpanded ? (
-								<motion.div
-									key="title"
-									className="absolute inset-0"
-									/* Enter: slide down from above the card, slightly scaled down */
-									initial={{ opacity: 0, y: -20, scale: 0.9 }}
-									animate={{ opacity: 1, y: 0, scale: 1 }}
-									/* Exit: slide back up and out */
-									exit={{
-										opacity: 0,
-										y: -20,
-										scale: 0.9,
-										transition: { duration: 0.12 },
-									}}
-									transition={{
-										type: "spring",
-										stiffness: 350,
-										damping: 25,
-									}}
-								>
-									<span className="text-sm font-semibold text-foreground">
-										Access Requests
-									</span>
-								</motion.div>
-							) : (
-								<motion.div
-									key="summary"
-									className="absolute inset-0 line-clamp-2"
-									/* Enter: slide up from below the card, slightly scaled down */
-									initial={{ opacity: 0, y: 20, scale: 0.9 }}
-									animate={{ opacity: 1, y: 0, scale: 1 }}
-									/* Exit: slide back down and out */
-									exit={{
-										opacity: 0,
-										y: 20,
-										scale: 0.9,
-										transition: { duration: 0.12 },
-									}}
-									transition={{
-										type: "spring",
-										stiffness: 400,
-										damping: 30,
-									}}
-								>
-									<SummaryText requests={requests} />
-								</motion.div>
-							)}
-						</AnimatePresence>
-					</div>
-
-					{/* Chevron rotates 180 degrees with bounce */}
-					<motion.div
-						animate={{ rotate: isExpanded ? 180 : 0 }}
-						transition={BOUNCY_SPRING}
-						className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-					>
-						<IconChevronDown className="size-4" />
-					</motion.div>
-
-					{/* Dismiss: stopPropagation prevents triggering expand toggle */}
-					<button
-						type="button"
-						onClick={(e) => {
-							e.stopPropagation();
-							onDismiss?.();
-						}}
-						className="shrink-0 cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-						aria-label="Dismiss"
-					>
-						<IconX className="size-4" />
-					</button>
-				</div>
-
-				{/* Expanded user list: key changes on every expand to force
-				    AnimatePresence to re-mount, giving fresh stagger animations */}
-				<AnimatePresence>
-					{isExpanded && (
-						<motion.div
-							key={expandKey}
-							initial={{ height: 0, opacity: 0 }}
-							animate={{ height: "auto", opacity: 1 }}
-							exit={{ height: 0, opacity: 0 }}
-							transition={EXPAND_SPRING}
-							className="overflow-hidden"
-						>
-							<div className="border-t border-border" />
-							<div className="py-1">
-								{requests.map((request) => (
-									<motion.div
-										key={request.id}
-										/* All rows appear at once (no stagger).
-										   Names bounce-scale from small to full size,
-										   pills scale up with a slight bounce. */
-										initial={{ opacity: 0 }}
-										animate={{ opacity: 1 }}
-										transition={{ duration: 0.15 }}
-										className="flex items-center justify-between gap-3 px-4 py-2"
-									>
-										<div className="flex items-center gap-3">
-											{/* layoutId matches the collapsed avatar so Motion
-											    bounces it from the header into this row position */}
-											<motion.div
-												layoutId={`avatar-${request.id}`}
-												transition={BOUNCY_SPRING}
-											>
-												<Avatar size="sm">
-													{request.avatarUrl && (
-														<AvatarImage
-															src={request.avatarUrl}
-															alt={request.name}
-														/>
-													)}
-													<AvatarFallback>
-														{getInitials(request.name)}
-													</AvatarFallback>
-												</Avatar>
-											</motion.div>
-											{/* Name bounces in via scale for a playful feel */}
-											<motion.span
-												className="text-sm font-medium"
-												initial={{ scale: 0.7, opacity: 0 }}
-												animate={{ scale: 1, opacity: 1 }}
-												transition={BOUNCY_SPRING}
-											>
-												{request.name}
-											</motion.span>
-										</div>
-										{/* Pill scales up with bounce to draw attention */}
-										<motion.div
-											initial={{ scale: 0.85, opacity: 0 }}
-											animate={{ scale: 1, opacity: 1 }}
-											transition={BOUNCY_SPRING}
-										>
-											<DecisionPill
-												pillId={request.id}
-												decision={decisions[request.id] ?? "undecided"}
-												onApprove={() => handleApprove(request.id)}
-												onReject={() => handleReject(request.id)}
-												onReset={() => handleReset(request.id)}
-											/>
-										</motion.div>
-									</motion.div>
-								))}
-							</div>
-						</motion.div>
-					)}
-				</AnimatePresence>
-			</motion.div>
-		</LayoutGroup>
+		<AccessRequestBannerView
+			requests={requests}
+			bannerState={toBannerState(internalBannerState)}
+			decisions={decisions}
+			collapsedAvatars={collapsedAvatars}
+			remainingCount={remainingCount}
+			onToggleExpand={dispatchBannerToggle}
+			onDismiss={onDismiss}
+			onApproveRequest={handleApprove}
+			onRejectRequest={handleReject}
+			onResetRequest={handleReset}
+		/>
 	);
 }
