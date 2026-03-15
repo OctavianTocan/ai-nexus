@@ -1,5 +1,7 @@
 "use client";
 
+import { Calligraph } from "calligraph";
+import Image from "next/image";
 import Link from "next/link";
 import {
 	SidebarGroup,
@@ -9,6 +11,7 @@ import {
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import useGetConversations from "@/hooks/get-conversations";
+import LoaderSVG from "../public/bars-rotate-fade.svg";
 
 // TODO: This needs to take in conversations/chats.
 export function NavChats() {
@@ -27,7 +30,14 @@ export function NavChats() {
 						<SidebarMenuButton asChild tooltip={conversation.title}>
 							{/* Using link for soft navigation. */}
 							<Link href={`/c/${conversation.id}`}>
-								<span>{conversation.title}</span>
+								<Image
+									src={LoaderSVG}
+									width={15}
+									height={15}
+									alt="Animated Loader"
+									unoptimized // Recommended for some animated SVGs to prevent caching issues
+								/>
+								<Calligraph>{conversation.title}</Calligraph>
 							</Link>
 						</SidebarMenuButton>
 					</SidebarMenuItem>
