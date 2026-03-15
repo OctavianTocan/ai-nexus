@@ -149,11 +149,16 @@ export type ExpandedRequestListProps = {
 	onResetRequest: (id: string) => void;
 };
 
-/** Spring config reused across all bouncy animations in this component family. */
+/**
+ * Spring config reused across all bouncy animations in this component family.
+ *
+ * Damping was increased from 15 → 20 (~30% reduction in overshoot) to feel
+ * lively without being distractingly springy on repeated open/close cycles.
+ */
 export const BOUNCY_SPRING = {
 	type: "spring" as const,
 	stiffness: 300,
-	damping: 15,
+	damping: 20,
 };
 
 /** Softer spring for expanding section so it feels weighty, not snappy. */

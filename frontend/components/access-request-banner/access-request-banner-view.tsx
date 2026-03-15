@@ -46,7 +46,6 @@ export function AccessRequestBannerView({
 	return (
 		<LayoutGroup>
 			<motion.div
-				layout
 				transition={EXPAND_SPRING}
 				className="w-full overflow-hidden rounded-xl border border-border bg-card shadow-sm"
 			>

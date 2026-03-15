@@ -73,12 +73,16 @@ function CollapsedAvatarGroup({
  * Crossfades between the "Access Requests" title (expanded) and the
  * `SummaryText` sentence (collapsed) using `AnimatePresence` with `mode="wait"`.
  *
- * **WHY overflow-hidden + absolute positioning?**
- * `mode="wait"` swaps one child out before the next enters, but both the
- * exiting and entering elements must occupy the same space without disturbing
- * the surrounding flex row. `position: absolute` stacks them in place;
- * `overflow-hidden` on the parent clips the y-translate overshoot so the
- * animation stays visually contained within the header.
+ * **WHY `mode="wait"` enables natural flow instead of absolute positioning?**
+ * `mode="wait"` guarantees at most one child is in the DOM at a time — the
+ * exiting child fully unmounts before the entering child mounts. Because
+ * they never coexist, both can participate in normal document flow and the
+ * container height adjusts to fit the content. This lets the summary text
+ * wrap to two lines at narrow widths (matching the reference design) instead
+ * of being clipped to one line by a fixed-height absolute box.
+ *
+ * `min-h-[1.25rem]` prevents the container from collapsing to zero height
+ * during the brief gap between exit and enter.
  *
  * **WHY opposite `y` directions?**
  * The title enters from above (`y: -20`) — it conceptually "drops down" to
@@ -94,12 +98,11 @@ function HeaderTextCrossfade({
 	requests: AccessRequest[];
 }) {
 	return (
-		<div className="relative min-h-[1.25rem] min-w-0 flex-1 overflow-hidden">
+		<div className="min-h-[1.25rem] min-w-0 flex-1 overflow-hidden">
 			<AnimatePresence mode="wait" initial={false}>
 				{bannerState.status === "expanded" ? (
 					<motion.div
 						key="title"
-						className="absolute inset-0"
 						initial={{ opacity: 0, y: -20, scale: 0.9 }}
 						animate={{ opacity: 1, y: 0, scale: 1 }}
 						exit={{
@@ -117,7 +120,7 @@ function HeaderTextCrossfade({
 				) : (
 					<motion.div
 						key="summary"
-						className="absolute inset-0 line-clamp-2"
+						className="line-clamp-2"
 						initial={{ opacity: 0, y: 20, scale: 0.9 }}
 						animate={{ opacity: 1, y: 0, scale: 1 }}
 						exit={{
