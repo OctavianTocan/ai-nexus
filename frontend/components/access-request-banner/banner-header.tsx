@@ -90,22 +90,32 @@ function HeaderTextBlock({
 	const isExpanded = bannerState.status === "expanded";
 
 	return (
-		<div className="relative min-w-0 flex-1">
-			{/* "Access Requests" — visible when expanded */}
+		<div className="relative min-w-0 flex-1 overflow-hidden">
+			{/* "Access Requests" — slides in from above when expanded */}
 			<motion.span
-				animate={{ opacity: isExpanded ? 1 : 0 }}
-				transition={{ duration: 0.15 }}
-				className={`text-sm font-semibold text-foreground ${
+				animate={{
+					opacity: isExpanded ? 1 : 0,
+					y: isExpanded ? 0 : -12,
+					scale: isExpanded ? 1 : 0.85,
+					filter: isExpanded ? "blur(0px)" : "blur(4px)",
+				}}
+				transition={{ type: "spring", stiffness: 400, damping: 30 }}
+				className={`block text-sm font-semibold text-foreground ${
 					isExpanded ? "" : "pointer-events-none absolute inset-0"
 				}`}
 			>
 				Access Requests
 			</motion.span>
 
-			{/* Summary text — visible when collapsed */}
+			{/* Summary text — slides in from below when collapsed */}
 			<motion.div
-				animate={{ opacity: isExpanded ? 0 : 1 }}
-				transition={{ duration: 0.15 }}
+				animate={{
+					opacity: isExpanded ? 0 : 1,
+					y: isExpanded ? 12 : 0,
+					scale: isExpanded ? 0.85 : 1,
+					filter: isExpanded ? "blur(4px)" : "blur(0px)",
+				}}
+				transition={{ type: "spring", stiffness: 400, damping: 30 }}
 				className={isExpanded ? "pointer-events-none absolute inset-0" : ""}
 			>
 				<SummaryText requests={requests} />
