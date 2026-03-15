@@ -1,7 +1,7 @@
 "use client";
 
 import { IconChevronDown, IconX } from "@tabler/icons-react";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import {
 	Avatar,
 	AvatarFallback,
@@ -71,14 +71,15 @@ function CollapsedAvatarGroup({
 
 /**
  * Shows either the "Access Requests" title (expanded) or the summary text
- * (collapsed). Each is independently positioned via absolute positioning
- * inside a shared container, so one never pushes the other around.
+ * (collapsed) with a purely vertical swap animation.
  *
- * Both elements are always in the DOM but toggled between `opacity-0` /
- * `opacity-1` and `pointer-events-none` / `pointer-events-auto` so layout
- * is driven solely by the visible element's intrinsic size via `invisible`
- * duplicate technique — the container always sizes to the *taller* of the
- * two, preventing any height jumps.
+ * **WHY `mode="popLayout"`?**
+ * When collapsing, the collapsed avatars appear as a flex sibling *before*
+ * this container, pushing it rightward. With a normal `AnimatePresence` the
+ * exiting title would follow that horizontal shift. `popLayout` immediately
+ * takes the exiting element out of flow (absolute-positioned at its current
+ * visual coordinates), so it stays put at the left edge and animates
+ * straight up — as if the incoming avatars physically pushed it out.
  */
 function HeaderTextBlock({
 	bannerState,
@@ -87,39 +88,47 @@ function HeaderTextBlock({
 	bannerState: BannerState;
 	requests: AccessRequest[];
 }) {
-	const isExpanded = bannerState.status === "expanded";
-
 	return (
-		<div className="relative min-w-0 flex-1 overflow-hidden">
-			{/* "Access Requests" — slides in from above when expanded */}
-			<motion.span
-				animate={{
-					opacity: isExpanded ? 1 : 0,
-					y: isExpanded ? 0 : -12,
-					scale: isExpanded ? 1 : 0.85,
-					filter: isExpanded ? "blur(0px)" : "blur(4px)",
-				}}
-				transition={{ type: "spring", stiffness: 400, damping: 30 }}
-				className={`block text-sm font-semibold text-foreground ${
-					isExpanded ? "" : "pointer-events-none absolute inset-0"
-				}`}
-			>
-				Access Requests
-			</motion.span>
-
-			{/* Summary text — slides in from below when collapsed */}
-			<motion.div
-				animate={{
-					opacity: isExpanded ? 0 : 1,
-					y: isExpanded ? 12 : 0,
-					scale: isExpanded ? 0.85 : 1,
-					filter: isExpanded ? "blur(4px)" : "blur(0px)",
-				}}
-				transition={{ type: "spring", stiffness: 400, damping: 30 }}
-				className={isExpanded ? "pointer-events-none absolute inset-0" : ""}
-			>
-				<SummaryText requests={requests} />
-			</motion.div>
+		<div className="min-w-0 flex-1 overflow-hidden">
+			<AnimatePresence mode="popLayout" initial={false}>
+				{bannerState.status === "expanded" ? (
+					<motion.div
+						key="title"
+						initial={{ opacity: 0, y: -16, filter: "blur(4px)" }}
+						animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+						exit={{ opacity: 0, y: -16, filter: "blur(4px)" }}
+						transition={{ type: "spring", stiffness: 400, damping: 30 }}
+					>
+						<motion.span
+							initial={{ scale: 0.85 }}
+							animate={{ scale: 1 }}
+							exit={{ scale: 0.85 }}
+							transition={{ type: "spring", stiffness: 400, damping: 30 }}
+							className="block origin-left text-sm font-semibold text-foreground"
+						>
+							Access Requests
+						</motion.span>
+					</motion.div>
+				) : (
+					<motion.div
+						key="summary"
+						initial={{ opacity: 0, y: 16, filter: "blur(4px)" }}
+						animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+						exit={{ opacity: 0, y: 16, filter: "blur(4px)" }}
+						transition={{ type: "spring", stiffness: 400, damping: 30 }}
+					>
+						<motion.div
+							initial={{ scale: 0.85 }}
+							animate={{ scale: 1 }}
+							exit={{ scale: 0.85 }}
+							transition={{ type: "spring", stiffness: 400, damping: 30 }}
+							className="origin-left"
+						>
+							<SummaryText requests={requests} />
+						</motion.div>
+					</motion.div>
+				)}
+			</AnimatePresence>
 		</div>
 	);
 }
